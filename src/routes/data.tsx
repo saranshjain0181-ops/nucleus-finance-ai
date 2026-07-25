@@ -1,31 +1,52 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
-import { Upload, Plus, Trash2 } from "lucide-react";
+import { Upload, Plus, Trash2, FileText, FileSpreadsheet, FileType, Paperclip } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useFinance } from "@/lib/finance-store";
+import { useFinance, type FinanceState } from "@/lib/finance-store";
 import { toast } from "sonner";
+import * as XLSX from "xlsx";
 
 export const Route = createFileRoute("/data")({
   head: () => ({
     meta: [
       { title: "Data Ingestion — FinOps Studio" },
-      { name: "description", content: "Upload CSV/Excel or manually edit raw revenue, COGS, and opex." },
+      { name: "description", content: "Upload CSV, Excel, PDF, docs & slides or manually edit raw revenue, COGS, and opex." },
     ],
   }),
   component: DataView,
 });
 
+type AttachmentKind = FinanceState["attachments"][number]["kind"];
+
+function classifyFile(file: File): AttachmentKind {
+  const n = file.name.toLowerCase();
+  if (n.endsWith(".csv")) return "csv";
+  if (n.endsWith(".xlsx") || n.endsWith(".xls") || n.endsWith(".ods")) return "excel";
+  if (n.endsWith(".pdf")) return "pdf";
+  if (n.endsWith(".doc") || n.endsWith(".docx")) return "doc";
+  if (n.endsWith(".ppt") || n.endsWith(".pptx") || n.endsWith(".key")) return "slides";
+  if (n.endsWith(".txt") || n.endsWith(".md")) return "text";
+  return "other";
+}
+
+function iconFor(kind: AttachmentKind) {
+  if (kind === "excel" || kind === "csv") return FileSpreadsheet;
+  if (kind === "pdf" || kind === "doc" || kind === "text") return FileText;
+  if (kind === "slides") return FileType;
+  return Paperclip;
+}
+
 function DataView() {
   const { state, update, set } = useFinance();
   const [drag, setDrag] = useState(false);
 
-  const parseCsv = useCallback(
-    (text: string) => {
+  const parseCsvText = useCallback(
+    (text: string, source: string) => {
       const lines = text.split(/\r?\n/).filter(Boolean);
       const rows = lines
         .slice(1)
@@ -42,16 +63,81 @@ function DataView() {
           };
         });
       set("customRows", [...state.customRows, ...rows]);
-      toast.success(`Imported ${rows.length} rows`);
+      toast.success(`Imported ${rows.length} rows from ${source}`);
+      return rows.length;
     },
     [state.customRows, set],
   );
 
-  const onFile = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = () => parseCsv(String(reader.result || ""));
-    reader.readAsText(file);
+  const parseWorkbook = useCallback(
+    async (file: File) => {
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: "array" });
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const json = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: "" });
+      const rows = json.map((r, i) => {
+        const keys = Object.keys(r);
+        const label = String(r["label"] ?? r["Label"] ?? r[keys[0]] ?? `Row ${i + 1}`);
+        const value = Number(r["value"] ?? r["Value"] ?? r[keys[1]] ?? 0) || 0;
+        const cat = String(r["category"] ?? r["Category"] ?? r[keys[2]] ?? "opex").toLowerCase();
+        const category: "revenue" | "cogs" | "opex" =
+          cat === "revenue" || cat === "cogs" ? (cat as "revenue" | "cogs") : "opex";
+        return { id: `xls-${Date.now()}-${i}`, label, value, category };
+      });
+      set("customRows", [...state.customRows, ...rows]);
+      toast.success(`Imported ${rows.length} rows from ${file.name}`);
+      return rows.length;
+    },
+    [state.customRows, set],
+  );
+
+  const addAttachment = (file: File, kind: AttachmentKind, rowsImported?: number, preview?: string) => {
+    set("attachments", [
+      ...state.attachments,
+      {
+        id: `att-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        name: file.name,
+        type: file.type || kind,
+        size: file.size,
+        addedAt: Date.now(),
+        kind,
+        rowsImported,
+        preview,
+      },
+    ]);
   };
+
+  const handleFiles = async (files: FileList | File[]) => {
+    const list = Array.from(files);
+    for (const file of list) {
+      const kind = classifyFile(file);
+      try {
+        if (kind === "csv" || kind === "text") {
+          const text = await file.text();
+          const imported = kind === "csv" ? parseCsvText(text, file.name) : 0;
+          addAttachment(file, kind, imported, text.slice(0, 400));
+        } else if (kind === "excel") {
+          const imported = await parseWorkbook(file);
+          addAttachment(file, kind, imported);
+        } else {
+          // pdf / doc / slides / other — store as reference attachment
+          addAttachment(file, kind);
+          toast.message(`Attached ${file.name}`, {
+            description:
+              kind === "pdf" || kind === "doc" || kind === "slides"
+                ? "Stored as reference. Add key figures manually below."
+                : "Attached to this workspace.",
+          });
+        }
+      } catch (e) {
+        toast.error(`Failed to import ${file.name}: ${e instanceof Error ? e.message : "unknown"}`);
+      }
+    }
+  };
+
+  const removeAttachment = (id: string) =>
+    set("attachments", state.attachments.filter((a) => a.id !== id));
+
 
   const addRow = () => {
     set("customRows", [
