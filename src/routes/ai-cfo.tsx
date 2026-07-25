@@ -50,15 +50,16 @@ AI COMPUTE ECONOMICS
 }
 
 function AICFOView() {
-  const { state } = useFinance();
+  const { state, set } = useFinance();
   const [messages, setMessages] = useState<Msg[]>([
     { role: "assistant", content: "Hi — I'm your AI CFO. I can already see your P&L, unit economics, and AI cost model. Ask me anything, or generate an investor narrative below." },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
+  const narrativeFlag = useRef(false);
 
-  const send = async (prompt: string) => {
+  const send = async (prompt: string, isNarrative = false) => {
     if (!prompt.trim()) return;
     if (!state.geminiApiKey) {
       toast.error("Add your Gemini API key first (top right)");
@@ -68,6 +69,7 @@ function AICFOView() {
     setMessages(next);
     setInput("");
     setLoading(true);
+    narrativeFlag.current = isNarrative;
     try {
       const system = buildSystemContext(state);
       const res = await fetch(
@@ -88,6 +90,11 @@ function AICFOView() {
       const data = await res.json();
       const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "(no response)";
       setMessages([...next, { role: "assistant", content: text }]);
+      if (narrativeFlag.current) {
+        set("latestNarrative", text);
+        set("narrativeAt", Date.now());
+        toast.success("Investor narrative saved — included in PDF export");
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Unknown error";
       toast.error(msg);
@@ -100,7 +107,9 @@ function AICFOView() {
   const generateNarrative = () =>
     send(
       "Write a 3-paragraph executive summary I could put in an investor deck: highlight the strongest margins and unit economics from my current data. Be specific with numbers.",
+      true,
     );
+
 
   const exportPdf = async () => {
     const node = printRef.current;
@@ -199,15 +208,31 @@ function AICFOView() {
         </CardContent>
       </Card>
 
-      <PrintView refEl={printRef} />
+      <PrintView refEl={printRef} messages={messages} />
     </div>
   );
 }
 
-function PrintView({ refEl }: { refEl: React.RefObject<HTMLDivElement | null> }) {
+function PrintView({
+  refEl,
+  messages,
+}: {
+  refEl: React.RefObject<HTMLDivElement | null>;
+  messages: Msg[];
+}) {
   const { state } = useFinance();
   const p = computePnL(state);
   const ai = computeAICosts(state);
+  // Grab last few conversational exchanges (skip greeting), cap length per msg
+  const excerpts = messages
+    .slice(1)
+    .filter((m) => !m.content.startsWith("Error:"))
+    .slice(-6)
+    .map((m) => ({
+      role: m.role,
+      content: m.content.length > 600 ? m.content.slice(0, 600) + "…" : m.content,
+    }));
+  const narrative = state.latestNarrative?.trim();
   return (
     <div
       ref={refEl}
@@ -257,6 +282,70 @@ function PrintView({ refEl }: { refEl: React.RefObject<HTMLDivElement | null> })
       <p style={{ fontSize: 14, marginTop: 8, color: "#cbd5e1" }}>
         ARPU {fmtCurrency(state.arpu)}/mo · CAC {fmtCurrency(state.cac)} · Gross Margin {fmtPct(state.grossMarginPct)} · Churn {fmtPct(state.churnRate)}
       </p>
+
+      <h2 style={{ marginTop: 32, fontSize: 20, color: "#f59e0b" }}>Investor Narrative</h2>
+      {narrative ? (
+        <>
+          <p style={{ fontSize: 11, color: "#64748b", marginTop: 4 }}>
+            Generated {state.narrativeAt ? new Date(state.narrativeAt).toLocaleString() : ""}
+          </p>
+          <div
+            style={{
+              marginTop: 12,
+              padding: 16,
+              background: "#0f172a",
+              border: "1px solid #1e293b",
+              borderRadius: 8,
+              fontSize: 13,
+              lineHeight: 1.6,
+              color: "#e2e8f0",
+              whiteSpace: "pre-wrap",
+            }}
+          >
+            {narrative}
+          </div>
+        </>
+      ) : (
+        <p style={{ fontSize: 13, marginTop: 8, color: "#64748b" }}>
+          No narrative generated yet — click "Investor Narrative" in the AI CFO to add one here.
+        </p>
+      )}
+
+      {excerpts.length > 0 && (
+        <>
+          <h2 style={{ marginTop: 32, fontSize: 20, color: "#f472b6" }}>AI CFO — Chat Excerpts</h2>
+          <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 10 }}>
+            {excerpts.map((m, i) => (
+              <div
+                key={i}
+                style={{
+                  padding: "10px 14px",
+                  borderRadius: 8,
+                  fontSize: 12,
+                  lineHeight: 1.55,
+                  background: m.role === "user" ? "#1e293b" : "#0f172a",
+                  border: "1px solid #1e293b",
+                  whiteSpace: "pre-wrap",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 10,
+                    textTransform: "uppercase",
+                    letterSpacing: 1,
+                    color: m.role === "user" ? "#38bdf8" : "#34d399",
+                    marginBottom: 4,
+                  }}
+                >
+                  {m.role === "user" ? "Question" : "AI CFO"}
+                </div>
+                {m.content}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
+
