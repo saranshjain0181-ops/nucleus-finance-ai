@@ -616,8 +616,9 @@ function CalcMatrix() {
                 {calculatorConfig
                   .filter((x) => x.category === c.id)
                   .map((calc) => (
-                    <DynamicCalcCard key={calc.id} calc={calc} />
+                    <DynamicCalcCard key={calc.id} calc={calc} sampleTick={sampleTick} />
                   ))}
+
               </div>
             </TabsContent>
           ))}
