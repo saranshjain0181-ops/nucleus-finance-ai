@@ -636,6 +636,3 @@ function Result({ label, value, tone = "default" }: { label: string; value: stri
   );
 }
 
-// Silence unused-import warning from prior formatters helper
-void fmtCurrency; void fmtPct;
-import { fmtCurrency, fmtPct } from "@/lib/finance-store";
