@@ -12,7 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as UnitEconomicsRouteImport } from './routes/unit-economics'
 import { Route as PnlRouteImport } from './routes/pnl'
 import { Route as DataRouteImport } from './routes/data'
+import { Route as CalculatorsRouteImport } from './routes/calculators'
 import { Route as AiSimulatorRouteImport } from './routes/ai-simulator'
+import { Route as AiCfoRouteImport } from './routes/ai-cfo'
 import { Route as IndexRouteImport } from './routes/index'
 
 const UnitEconomicsRoute = UnitEconomicsRouteImport.update({
@@ -30,9 +32,19 @@ const DataRoute = DataRouteImport.update({
   path: '/data',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CalculatorsRoute = CalculatorsRouteImport.update({
+  id: '/calculators',
+  path: '/calculators',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AiSimulatorRoute = AiSimulatorRouteImport.update({
   id: '/ai-simulator',
   path: '/ai-simulator',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiCfoRoute = AiCfoRouteImport.update({
+  id: '/ai-cfo',
+  path: '/ai-cfo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -43,14 +55,18 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ai-cfo': typeof AiCfoRoute
   '/ai-simulator': typeof AiSimulatorRoute
+  '/calculators': typeof CalculatorsRoute
   '/data': typeof DataRoute
   '/pnl': typeof PnlRoute
   '/unit-economics': typeof UnitEconomicsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ai-cfo': typeof AiCfoRoute
   '/ai-simulator': typeof AiSimulatorRoute
+  '/calculators': typeof CalculatorsRoute
   '/data': typeof DataRoute
   '/pnl': typeof PnlRoute
   '/unit-economics': typeof UnitEconomicsRoute
@@ -58,22 +74,48 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ai-cfo': typeof AiCfoRoute
   '/ai-simulator': typeof AiSimulatorRoute
+  '/calculators': typeof CalculatorsRoute
   '/data': typeof DataRoute
   '/pnl': typeof PnlRoute
   '/unit-economics': typeof UnitEconomicsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/ai-simulator' | '/data' | '/pnl' | '/unit-economics'
+  fullPaths:
+    | '/'
+    | '/ai-cfo'
+    | '/ai-simulator'
+    | '/calculators'
+    | '/data'
+    | '/pnl'
+    | '/unit-economics'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/ai-simulator' | '/data' | '/pnl' | '/unit-economics'
-  id: '__root__' | '/' | '/ai-simulator' | '/data' | '/pnl' | '/unit-economics'
+  to:
+    | '/'
+    | '/ai-cfo'
+    | '/ai-simulator'
+    | '/calculators'
+    | '/data'
+    | '/pnl'
+    | '/unit-economics'
+  id:
+    | '__root__'
+    | '/'
+    | '/ai-cfo'
+    | '/ai-simulator'
+    | '/calculators'
+    | '/data'
+    | '/pnl'
+    | '/unit-economics'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AiCfoRoute: typeof AiCfoRoute
   AiSimulatorRoute: typeof AiSimulatorRoute
+  CalculatorsRoute: typeof CalculatorsRoute
   DataRoute: typeof DataRoute
   PnlRoute: typeof PnlRoute
   UnitEconomicsRoute: typeof UnitEconomicsRoute
@@ -102,11 +144,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DataRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/calculators': {
+      id: '/calculators'
+      path: '/calculators'
+      fullPath: '/calculators'
+      preLoaderRoute: typeof CalculatorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ai-simulator': {
       id: '/ai-simulator'
       path: '/ai-simulator'
       fullPath: '/ai-simulator'
       preLoaderRoute: typeof AiSimulatorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-cfo': {
+      id: '/ai-cfo'
+      path: '/ai-cfo'
+      fullPath: '/ai-cfo'
+      preLoaderRoute: typeof AiCfoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -121,7 +177,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AiCfoRoute: AiCfoRoute,
   AiSimulatorRoute: AiSimulatorRoute,
+  CalculatorsRoute: CalculatorsRoute,
   DataRoute: DataRoute,
   PnlRoute: PnlRoute,
   UnitEconomicsRoute: UnitEconomicsRoute,
@@ -129,3 +187,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
