@@ -30,6 +30,20 @@ export type FinanceState = {
   subscriptionPrice: number;
   // Custom grid rows
   customRows: { id: string; label: string; value: number; category: "revenue" | "cogs" | "opex" }[];
+  // Uploaded files (metadata + optional extracted text preview)
+  attachments: {
+    id: string;
+    name: string;
+    type: string;
+    size: number;
+    addedAt: number;
+    kind: "csv" | "excel" | "pdf" | "doc" | "slides" | "text" | "other";
+    rowsImported?: number;
+    preview?: string;
+  }[];
+  // Latest AI CFO investor narrative (persisted for PDF export)
+  latestNarrative: string;
+  narrativeAt: number | null;
   // Settings
   geminiApiKey: string;
 };
