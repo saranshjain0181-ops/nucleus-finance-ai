@@ -581,12 +581,18 @@ function CalcMatrix() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-6">
-      <header>
-        <p className="text-xs uppercase tracking-widest text-muted-foreground">Toolkit</p>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight">Calculator Matrix</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {calculatorConfig.length} calculators across {CATEGORIES.length} categories · config-driven
-        </p>
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Toolkit</p>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Calculator Matrix</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {calculatorConfig.length} calculators across {CATEGORIES.length} categories · config-driven
+          </p>
+        </div>
+        <Button onClick={autoFill} variant="secondary" size="sm" className="gap-2">
+          <Wand2 className="h-4 w-4" />
+          Auto-Fill Sample Data
+        </Button>
       </header>
 
       <Tabs defaultValue="vc" orientation="vertical" className="flex flex-col gap-6 lg:flex-row">
@@ -601,6 +607,7 @@ function CalcMatrix() {
             );
           })}
         </TabsList>
+
 
         <div className="flex-1 space-y-6">
           {CATEGORIES.map((c) => (
