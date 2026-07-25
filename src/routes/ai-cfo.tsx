@@ -50,15 +50,16 @@ AI COMPUTE ECONOMICS
 }
 
 function AICFOView() {
-  const { state } = useFinance();
+  const { state, set } = useFinance();
   const [messages, setMessages] = useState<Msg[]>([
     { role: "assistant", content: "Hi — I'm your AI CFO. I can already see your P&L, unit economics, and AI cost model. Ask me anything, or generate an investor narrative below." },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
+  const narrativeFlag = useRef(false);
 
-  const send = async (prompt: string) => {
+  const send = async (prompt: string, isNarrative = false) => {
     if (!prompt.trim()) return;
     if (!state.geminiApiKey) {
       toast.error("Add your Gemini API key first (top right)");
@@ -68,6 +69,7 @@ function AICFOView() {
     setMessages(next);
     setInput("");
     setLoading(true);
+    narrativeFlag.current = isNarrative;
     try {
       const system = buildSystemContext(state);
       const res = await fetch(
@@ -88,6 +90,11 @@ function AICFOView() {
       const data = await res.json();
       const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "(no response)";
       setMessages([...next, { role: "assistant", content: text }]);
+      if (narrativeFlag.current) {
+        set("latestNarrative", text);
+        set("narrativeAt", Date.now());
+        toast.success("Investor narrative saved — included in PDF export");
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Unknown error";
       toast.error(msg);
@@ -100,7 +107,9 @@ function AICFOView() {
   const generateNarrative = () =>
     send(
       "Write a 3-paragraph executive summary I could put in an investor deck: highlight the strongest margins and unit economics from my current data. Be specific with numbers.",
+      true,
     );
+
 
   const exportPdf = async () => {
     const node = printRef.current;
