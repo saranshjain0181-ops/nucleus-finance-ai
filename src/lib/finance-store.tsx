@@ -74,6 +74,9 @@ const DEFAULT_STATE: FinanceState = {
   vectorDbCost: 2000,
   subscriptionPrice: 49,
   customRows: [],
+  attachments: [],
+  latestNarrative: "",
+  narrativeAt: null,
   geminiApiKey: "",
 };
 
