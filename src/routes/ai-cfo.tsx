@@ -73,7 +73,7 @@ function AICFOView() {
     try {
       const system = buildSystemContext(state);
       const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(state.geminiApiKey)}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${encodeURIComponent(state.geminiApiKey)}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
