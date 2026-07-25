@@ -9,8 +9,32 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UnitEconomicsRouteImport } from './routes/unit-economics'
+import { Route as PnlRouteImport } from './routes/pnl'
+import { Route as DataRouteImport } from './routes/data'
+import { Route as AiSimulatorRouteImport } from './routes/ai-simulator'
 import { Route as IndexRouteImport } from './routes/index'
 
+const UnitEconomicsRoute = UnitEconomicsRouteImport.update({
+  id: '/unit-economics',
+  path: '/unit-economics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PnlRoute = PnlRouteImport.update({
+  id: '/pnl',
+  path: '/pnl',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DataRoute = DataRouteImport.update({
+  id: '/data',
+  path: '/data',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiSimulatorRoute = AiSimulatorRouteImport.update({
+  id: '/ai-simulator',
+  path: '/ai-simulator',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +43,72 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ai-simulator': typeof AiSimulatorRoute
+  '/data': typeof DataRoute
+  '/pnl': typeof PnlRoute
+  '/unit-economics': typeof UnitEconomicsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ai-simulator': typeof AiSimulatorRoute
+  '/data': typeof DataRoute
+  '/pnl': typeof PnlRoute
+  '/unit-economics': typeof UnitEconomicsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ai-simulator': typeof AiSimulatorRoute
+  '/data': typeof DataRoute
+  '/pnl': typeof PnlRoute
+  '/unit-economics': typeof UnitEconomicsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/ai-simulator' | '/data' | '/pnl' | '/unit-economics'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/ai-simulator' | '/data' | '/pnl' | '/unit-economics'
+  id: '__root__' | '/' | '/ai-simulator' | '/data' | '/pnl' | '/unit-economics'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AiSimulatorRoute: typeof AiSimulatorRoute
+  DataRoute: typeof DataRoute
+  PnlRoute: typeof PnlRoute
+  UnitEconomicsRoute: typeof UnitEconomicsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/unit-economics': {
+      id: '/unit-economics'
+      path: '/unit-economics'
+      fullPath: '/unit-economics'
+      preLoaderRoute: typeof UnitEconomicsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pnl': {
+      id: '/pnl'
+      path: '/pnl'
+      fullPath: '/pnl'
+      preLoaderRoute: typeof PnlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/data': {
+      id: '/data'
+      path: '/data'
+      fullPath: '/data'
+      preLoaderRoute: typeof DataRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-simulator': {
+      id: '/ai-simulator'
+      path: '/ai-simulator'
+      fullPath: '/ai-simulator'
+      preLoaderRoute: typeof AiSimulatorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +121,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AiSimulatorRoute: AiSimulatorRoute,
+  DataRoute: DataRoute,
+  PnlRoute: PnlRoute,
+  UnitEconomicsRoute: UnitEconomicsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
