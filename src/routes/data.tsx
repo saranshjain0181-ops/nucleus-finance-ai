@@ -187,8 +187,7 @@ function DataView() {
         onDrop={(e) => {
           e.preventDefault();
           setDrag(false);
-          const f = e.dataTransfer.files?.[0];
-          if (f) onFile(f);
+          if (e.dataTransfer.files?.length) handleFiles(e.dataTransfer.files);
         }}
       >
         <CardContent className="flex flex-col items-center justify-center gap-3 p-10 text-center">
@@ -196,27 +195,66 @@ function DataView() {
             <Upload className="h-6 w-6" />
           </div>
           <div>
-            <p className="text-sm font-medium">Drop CSV / Excel here</p>
+            <p className="text-sm font-medium">Drop any files here — multiple welcome</p>
             <p className="text-xs text-muted-foreground">
-              Format: <code>label,value,category</code> where category ∈ revenue|cogs|opex
+              CSV & Excel auto-import as rows · PDF / DOCX / PPTX / TXT stored as reference
+            </p>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              CSV / Excel format: <code>label, value, category</code> (revenue|cogs|opex)
             </p>
           </div>
           <label>
             <input
               type="file"
-              accept=".csv,.txt,.xlsx"
+              multiple
+              accept=".csv,.txt,.md,.xlsx,.xls,.ods,.pdf,.doc,.docx,.ppt,.pptx,.key"
               className="hidden"
               onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) onFile(f);
+                if (e.target.files?.length) handleFiles(e.target.files);
+                e.target.value = "";
               }}
             />
             <Button variant="outline" size="sm" asChild>
-              <span className="cursor-pointer">Browse file</span>
+              <span className="cursor-pointer">Browse files</span>
             </Button>
           </label>
         </CardContent>
       </Card>
+
+      {state.attachments.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Uploaded files ({state.attachments.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="divide-y divide-border/50">
+              {state.attachments.map((a) => {
+                const Icon = iconFor(a.kind);
+                return (
+                  <li key={a.id} className="flex items-center gap-3 py-2.5">
+                    <div className="grid h-9 w-9 place-items-center rounded-md bg-muted/40 text-emerald-400">
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">{a.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {a.kind.toUpperCase()} · {(a.size / 1024).toFixed(1)} KB
+                        {typeof a.rowsImported === "number" && a.rowsImported > 0
+                          ? ` · ${a.rowsImported} rows imported`
+                          : ""}
+                      </p>
+                    </div>
+                    <Button size="icon" variant="ghost" onClick={() => removeAttachment(a.id)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </li>
+                );
+              })}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
+
 
       <Card>
         <CardHeader>
