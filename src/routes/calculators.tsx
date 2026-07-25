@@ -628,10 +628,18 @@ function CalcMatrix() {
   );
 }
 
-function DynamicCalcCard({ calc }: { calc: CalcConfig }) {
+function DynamicCalcCard({ calc, sampleTick }: { calc: CalcConfig; sampleTick: number }) {
   const [values, setValues] = useState<Record<string, number>>(() =>
     Object.fromEntries(calc.inputs.map((i) => [i.key, i.default])),
   );
+  useEffect(() => {
+    if (sampleTick === 0) return;
+    const overrides = SAMPLE_OVERRIDES[calc.id] ?? {};
+    setValues(
+      Object.fromEntries(calc.inputs.map((i) => [i.key, overrides[i.key] ?? i.default])),
+    );
+  }, [sampleTick, calc]);
+
   const results = useMemo(() => {
     try {
       return calc.compute(values);
