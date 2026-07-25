@@ -538,8 +538,47 @@ const calculatorConfig: CalcConfig[] = [
   },
 ];
 
+// ---------- Sample startup benchmark overrides (per calc id + input key) ----------
+const SAMPLE_OVERRIDES: Record<string, Record<string, number>> = {
+  "cac-payback": { cac: 500, mgp: 75 },
+  "ltv-cac": { ltv: 3600, cac: 500 },
+  "magic-number": { arr: 900_000, sm: 750_000 },
+  "rule-of-40": { g: 80, e: -20 },
+  "burn-multiple": { burn: 250_000, arr: 200_000 },
+  "dilution": { pre: 25, size: 8, own: 65 },
+  "runway": { cash: 4_500_000, burn: 275_000 },
+  "net-dollar-retention": { start: 1_500_000, exp: 300_000, churn: 90_000 },
+  "quick-ratio": { n: 80_000, e: 40_000, c: 15_000, d: 8_000 },
+  "wacc": { we: 70, ke: 14, kd: 7, t: 25 },
+  "dcf-simple": { fcf: 25, wacc: 10, g: 3 },
+  "dupont": { m: 15, t: 1.3, l: 2.2 },
+  "altman-z": { a: 0.25, b: 0.35, c: 0.18, d: 2.0, e: 1.4 },
+  "cash-conv": { dio: 35, dso: 42, dpo: 28 },
+  "gordon": { d: 2.5, r: 10, g: 4 },
+  "eva": { n: 12, c: 60, w: 10 },
+  "current-ratio": { a: 15, l: 8 },
+  "de-ratio": { d: 20, e: 40 },
+  "price-elasticity": { q: -15, p: 10 },
+  "cross-price": { qa: 12, pb: 10 },
+  "income-elasticity": { q: 18, i: 12 },
+  "break-even": { f: 120_000, p: 79, v: 22 },
+  "consumer-surplus": { wtp: 149, p: 49, q: 2000 },
+  "marginal-revenue": { r: 4900, q: 100 },
+  "npv-project": { i: 500_000, cf: 150_000, n: 5, r: 10 },
+  "irr": { i: 500_000, cf: 150_000, n: 5 },
+  "mirr": { i: 500_000, cf: 150_000, n: 5 },
+  "payback": { i: 500_000, cf: 150_000 },
+  "profitability-index": { pv: 700_000, i: 500_000 },
+  "depreciation": { cost: 500_000, salvage: 50_000, life: 5 },
+  "eaa": { npv: 250_000, r: 10, n: 5 },
+};
+
 // ---------- UI ----------
 function CalcMatrix() {
+  const [sampleTick, setSampleTick] = useState(0);
+  const autoFill = () => setSampleTick((t) => t + 1);
+
+
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-6">
       <header>
