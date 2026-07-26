@@ -1132,12 +1132,14 @@ function DynamicCalcCard({ calc, sampleTick }: { calc: CalcConfig; sampleTick: n
   const [values, setValues] = useState<Record<string, number>>(() =>
     Object.fromEntries(calc.inputs.map((i) => [i.key, i.default])),
   );
+  const [touched, setTouched] = useState(false);
   useEffect(() => {
     if (sampleTick === 0) return;
     const overrides = SAMPLE_OVERRIDES[calc.id] ?? {};
     setValues(
       Object.fromEntries(calc.inputs.map((i) => [i.key, overrides[i.key] ?? i.default])),
     );
+    setTouched(true);
   }, [sampleTick, calc]);
 
   const results = useMemo(() => {
@@ -1147,6 +1149,18 @@ function DynamicCalcCard({ calc, sampleTick }: { calc: CalcConfig; sampleTick: n
       return [{ label: "Result", value: "—" }];
     }
   }, [calc, values]);
+
+  // Publish live inputs/outputs so the AI CFO can read the Calculator Matrix state.
+  useEffect(() => {
+    publishCalc({
+      id: calc.id,
+      title: calc.title,
+      category: CATEGORIES.find((c) => c.id === calc.category)?.label ?? calc.category,
+      inputs: calc.inputs.map((i) => ({ label: i.name, value: values[i.key] })),
+      results: results.map((r) => ({ label: r.label, value: r.value })),
+      touched,
+    });
+  }, [calc, values, results, touched]);
 
   return (
     <Card>
