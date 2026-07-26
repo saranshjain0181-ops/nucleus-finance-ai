@@ -8,6 +8,11 @@ import { computeAICosts, computePnL, fmtCurrency, fmtPct, useFinance } from "@/l
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import {
+  formatCalcContext,
+  getCalcMatrixState,
+  useCalcMatrixState,
+} from "@/lib/calc-live-store";
 
 export const Route = createFileRoute("/ai-cfo")({
   head: () => ({
@@ -21,7 +26,7 @@ export const Route = createFileRoute("/ai-cfo")({
 
 type Msg = { role: "user" | "assistant"; content: string };
 
-function buildSystemContext(state: ReturnType<typeof useFinance>["state"]) {
+function buildSystemContext(state: ReturnType<typeof useFinance>["state"], calcContext: string) {
   const p = computePnL(state);
   const ai = computeAICosts(state);
   return `You are an experienced fractional CFO reviewing a startup's live financials.
@@ -46,8 +51,28 @@ AI COMPUTE ECONOMICS
 - Monthly AI COGS: ${fmtCurrency(ai.totalMonthlyCogs)}
 - AI Gross Margin: ${fmtPct(ai.grossMarginPct)}
 - Min price for 75% margin: ${fmtCurrency(ai.minPriceFor75)}
+
+LIVE CALCULATOR MATRIX (inputs => outputs the user is currently working with)
+${calcContext}
 `;
 }
+
+/** Mock analyst response used when no Gemini key is configured. Swap-in point for the real API. */
+function mockResponse(prompt: string, snaps: ReturnType<typeof getCalcMatrixState>) {
+  const used = snaps.filter((s) => s.touched).slice(0, 4);
+  const lines = (used.length ? used : snaps.slice(0, 3)).map(
+    (s) => `• **${s.title}** — ${s.results.map((r) => `${r.label}: ${r.value}`).join(", ")}`,
+  );
+  return `**Draft analysis (offline mode)** — add your Gemini API key in the header for a live model response.
+
+You asked: _${prompt}_
+
+Reading your live Calculator Matrix state:
+${lines.length ? lines.join("\n") : "• No calculators run yet — open the Calculator Matrix and hit Auto-Fill Sample Data."}
+
+Based on these figures, the near-term priority is protecting gross margin while your burn multiple stays inside efficient territory. Re-run the affected calculators after any pricing change and I'll re-read the updated numbers automatically.`;
+}
+
 
 function AICFOView() {
   const { state, set } = useFinance();
@@ -58,20 +83,31 @@ function AICFOView() {
   const [loading, setLoading] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
   const narrativeFlag = useRef(false);
+  const calcSnaps = useCalcMatrixState();
 
   const send = async (prompt: string, isNarrative = false) => {
     if (!prompt.trim()) return;
-    if (!state.geminiApiKey) {
-      toast.error("Add your Gemini API key first (top right)");
-      return;
-    }
     const next: Msg[] = [...messages, { role: "user", content: prompt }];
     setMessages(next);
     setInput("");
     setLoading(true);
     narrativeFlag.current = isNarrative;
+
+    // No key configured → return the mock analyst response grounded in live Matrix data.
+    if (!state.geminiApiKey) {
+      await new Promise((r) => setTimeout(r, 900));
+      const text = mockResponse(prompt, calcSnaps);
+      setMessages([...next, { role: "assistant", content: text }]);
+      if (isNarrative) {
+        set("latestNarrative", text);
+        set("narrativeAt", Date.now());
+      }
+      setLoading(false);
+      return;
+    }
+
     try {
-      const system = buildSystemContext(state);
+      const system = buildSystemContext(state, formatCalcContext(calcSnaps));
       const res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${encodeURIComponent(state.geminiApiKey)}`,
         {
@@ -201,7 +237,7 @@ function AICFOView() {
             </div>
             {!state.geminiApiKey && (
               <p className="mt-2 text-xs text-amber-400">
-                <FileText className="mr-1 inline h-3 w-3" /> Add your Gemini API key from the header to enable chat.
+                <FileText className="mr-1 inline h-3 w-3" /> No Gemini key set — running in offline mock mode using your live Calculator Matrix data.
               </p>
             )}
           </div>
