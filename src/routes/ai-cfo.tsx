@@ -78,20 +78,31 @@ function AICFOView() {
   const [loading, setLoading] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
   const narrativeFlag = useRef(false);
+  const calcSnaps = useCalcMatrixState();
 
   const send = async (prompt: string, isNarrative = false) => {
     if (!prompt.trim()) return;
-    if (!state.geminiApiKey) {
-      toast.error("Add your Gemini API key first (top right)");
-      return;
-    }
     const next: Msg[] = [...messages, { role: "user", content: prompt }];
     setMessages(next);
     setInput("");
     setLoading(true);
     narrativeFlag.current = isNarrative;
+
+    // No key configured → return the mock analyst response grounded in live Matrix data.
+    if (!state.geminiApiKey) {
+      await new Promise((r) => setTimeout(r, 900));
+      const text = mockResponse(prompt, calcSnaps);
+      setMessages([...next, { role: "assistant", content: text }]);
+      if (isNarrative) {
+        set("latestNarrative", text);
+        set("narrativeAt", Date.now());
+      }
+      setLoading(false);
+      return;
+    }
+
     try {
-      const system = buildSystemContext(state);
+      const system = buildSystemContext(state, formatCalcContext(calcSnaps));
       const res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${encodeURIComponent(state.geminiApiKey)}`,
         {
