@@ -6,6 +6,7 @@ import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Wand2 } from "lucide-react";
+import { publishCalc } from "@/lib/calc-live-store";
 
 
 export const Route = createFileRoute("/calculators")({
