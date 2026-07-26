@@ -8,6 +8,11 @@ import { computeAICosts, computePnL, fmtCurrency, fmtPct, useFinance } from "@/l
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import {
+  formatCalcContext,
+  getCalcMatrixState,
+  useCalcMatrixState,
+} from "@/lib/calc-live-store";
 
 export const Route = createFileRoute("/ai-cfo")({
   head: () => ({
