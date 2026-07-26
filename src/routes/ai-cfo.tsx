@@ -237,7 +237,7 @@ function AICFOView() {
             </div>
             {!state.geminiApiKey && (
               <p className="mt-2 text-xs text-amber-400">
-                <FileText className="mr-1 inline h-3 w-3" /> Add your Gemini API key from the header to enable chat.
+                <FileText className="mr-1 inline h-3 w-3" /> No Gemini key set — running in offline mock mode using your live Calculator Matrix data.
               </p>
             )}
           </div>
