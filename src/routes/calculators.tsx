@@ -1181,7 +1181,10 @@ function DynamicCalcCard({ calc, sampleTick }: { calc: CalcConfig; sampleTick: n
             </div>
             <Slider
               value={[values[input.key]]}
-              onValueChange={([v]) => setValues((prev) => ({ ...prev, [input.key]: v }))}
+              onValueChange={([v]) => {
+                setTouched(true);
+                setValues((prev) => ({ ...prev, [input.key]: v }));
+              }}
               min={input.min ?? 0}
               max={input.max ?? 100}
               step={input.step ?? 1}
