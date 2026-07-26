@@ -21,7 +21,7 @@ export const Route = createFileRoute("/ai-cfo")({
 
 type Msg = { role: "user" | "assistant"; content: string };
 
-function buildSystemContext(state: ReturnType<typeof useFinance>["state"]) {
+function buildSystemContext(state: ReturnType<typeof useFinance>["state"], calcContext: string) {
   const p = computePnL(state);
   const ai = computeAICosts(state);
   return `You are an experienced fractional CFO reviewing a startup's live financials.
@@ -46,8 +46,28 @@ AI COMPUTE ECONOMICS
 - Monthly AI COGS: ${fmtCurrency(ai.totalMonthlyCogs)}
 - AI Gross Margin: ${fmtPct(ai.grossMarginPct)}
 - Min price for 75% margin: ${fmtCurrency(ai.minPriceFor75)}
+
+LIVE CALCULATOR MATRIX (inputs => outputs the user is currently working with)
+${calcContext}
 `;
 }
+
+/** Mock analyst response used when no Gemini key is configured. Swap-in point for the real API. */
+function mockResponse(prompt: string, snaps: ReturnType<typeof getCalcMatrixState>) {
+  const used = snaps.filter((s) => s.touched).slice(0, 4);
+  const lines = (used.length ? used : snaps.slice(0, 3)).map(
+    (s) => `• **${s.title}** — ${s.results.map((r) => `${r.label}: ${r.value}`).join(", ")}`,
+  );
+  return `**Draft analysis (offline mode)** — add your Gemini API key in the header for a live model response.
+
+You asked: _${prompt}_
+
+Reading your live Calculator Matrix state:
+${lines.length ? lines.join("\n") : "• No calculators run yet — open the Calculator Matrix and hit Auto-Fill Sample Data."}
+
+Based on these figures, the near-term priority is protecting gross margin while your burn multiple stays inside efficient territory. Re-run the affected calculators after any pricing change and I'll re-read the updated numbers automatically.`;
+}
+
 
 function AICFOView() {
   const { state, set } = useFinance();
