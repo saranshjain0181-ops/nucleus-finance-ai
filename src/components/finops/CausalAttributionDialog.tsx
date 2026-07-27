@@ -40,7 +40,7 @@ function shapley(inputs: ShapInput[], evaluate: (v: Record<string, number>) => n
   // Enumerate all 2^n coalitions (n is small: 2-4 inputs per calculator).
   const contrib: Record<string, number> = Object.fromEntries(keys.map((k) => [k, 0]));
   const total = 1 << n;
-  const fact = (x: number) => (x <= 1 ? 1 : x * fact(x - 1));
+  const fact = (x: number): number => (x <= 1 ? 1 : x * fact(x - 1));
   for (let mask = 0; mask < total; mask++) {
     const S = keys.filter((_, i) => mask & (1 << i));
     const vS = safe({ ...base, ...Object.fromEntries(S.map((k) => [k, full[k]])) });
