@@ -5,12 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { fmtCurrency, fmtPct, useFinance } from "@/lib/finance-store";
+import { SurvivalAnalysis } from "@/components/finops/SurvivalAnalysis";
 
 export const Route = createFileRoute("/unit-economics")({
   head: () => ({
     meta: [
-      { title: "Unit Economics & Cohorts — FinOps Studio" },
-      { name: "description", content: "LTV, CAC, payback period and cohort retention heatmap." },
+      { title: "Survival Analysis & Unit Economics — FinOps Studio" },
+      { name: "description", content: "Kaplan-Meier survival curves, hazard-rate matrix, probabilistic LTV, CAC and cohort retention." },
     ],
   }),
   component: UnitView,
@@ -79,6 +80,8 @@ function UnitView() {
           <Field label="Monthly Churn %" value={state.churnRate} onChange={(v) => update({ churnRate: v })} />
         </CardContent>
       </Card>
+
+      <SurvivalAnalysis />
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">

@@ -7,6 +7,7 @@ import {
   LineChart,
   Sparkles,
   TrendingUp,
+  Radar,
   Users,
 } from "lucide-react";
 import {
@@ -29,6 +30,10 @@ const items = [
   { title: "AI Cost Simulator", url: "/ai-simulator", icon: TrendingUp },
   { title: "Calculator Matrix", url: "/calculators", icon: Calculator },
   { title: "AI CFO", url: "/ai-cfo", icon: Bot },
+];
+
+const scienceItems = [
+  { title: "ML Anomaly Radar", url: "/ml-anomaly", icon: Radar },
 ];
 
 export function AppSidebar() {
@@ -64,6 +69,23 @@ export function AppSidebar() {
                   </SidebarMenuItem>
                 );
               })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>Data Science</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {scienceItems.map((item) => (
+                <SidebarMenuItem key={item.url}>
+                  <SidebarMenuButton asChild isActive={pathname === item.url} tooltip={item.title}>
+                    <Link to={item.url} className="flex items-center gap-2">
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
