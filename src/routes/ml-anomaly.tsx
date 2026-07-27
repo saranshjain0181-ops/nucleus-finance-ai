@@ -203,11 +203,12 @@ function AnomalyRadar() {
                     );
                   }}
                 />
-                <Scatter data={normal} fill="hsl(210 70% 55%)" fillOpacity={0.35} />
+                <Scatter data={normal} fill="hsl(210 70% 55%)" fillOpacity={0.35} isAnimationActive={false} />
                 <Scatter
                   data={flagged}
                   fill="hsl(6 90% 62%)"
                   fillOpacity={0.95}
+                  isAnimationActive={false}
                   stroke="hsl(6 100% 72%)"
                   strokeWidth={1.5}
                   onClick={(d: unknown) => setSelected((d as { payload?: Txn })?.payload ?? null)}
