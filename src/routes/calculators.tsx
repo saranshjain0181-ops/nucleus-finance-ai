@@ -5,7 +5,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Wand2 } from "lucide-react";
+import { Sparkles, Wand2 } from "lucide-react";
+import { PrescriptiveOptimizer } from "@/components/finops/PrescriptiveOptimizer";
+import { CausalAttributionDialog } from "@/components/finops/CausalAttributionDialog";
 import { publishCalc } from "@/lib/calc-live-store";
 
 
@@ -1107,6 +1109,10 @@ function CalcMatrix() {
               </TabsTrigger>
             );
           })}
+          <TabsTrigger value="optimizer" className="justify-start lg:w-full">
+            <span>Prescriptive Optimizer</span>
+            <Sparkles className="ml-auto h-3 w-3 text-emerald-400" />
+          </TabsTrigger>
         </TabsList>
 
 
@@ -1123,10 +1129,21 @@ function CalcMatrix() {
               </div>
             </TabsContent>
           ))}
+          <TabsContent value="optimizer">
+            <PrescriptiveOptimizer />
+          </TabsContent>
         </div>
+
       </Tabs>
     </div>
   );
+}
+
+/** Pull the leading numeric out of a formatted result string for SHAP attribution. */
+function parseMetric(value?: string) {
+  if (!value) return 0;
+  const m = value.replace(/,/g, "").match(/-?\d+(\.\d+)?/);
+  return m ? Number(m[0]) : 0;
 }
 
 function DynamicCalcCard({ calc, sampleTick }: { calc: CalcConfig; sampleTick: number }) {
@@ -1196,6 +1213,20 @@ function DynamicCalcCard({ calc, sampleTick }: { calc: CalcConfig; sampleTick: n
           {results.map((r, i) => (
             <Result key={i} label={r.label} value={r.value} tone={r.tone} />
           ))}
+        </div>
+
+        <div className="flex justify-end">
+          <CausalAttributionDialog
+            title={calc.title}
+            metricLabel={results[0]?.label ?? "Result"}
+            inputs={calc.inputs.map((i) => ({
+              key: i.key,
+              name: i.name,
+              baseline: i.default,
+              current: values[i.key],
+            }))}
+            evaluate={(v) => parseMetric(calc.compute(v)[0]?.value)}
+          />
         </div>
       </CardContent>
     </Card>

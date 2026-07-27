@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UnitEconomicsRouteImport } from './routes/unit-economics'
 import { Route as PnlRouteImport } from './routes/pnl'
+import { Route as MlAnomalyRouteImport } from './routes/ml-anomaly'
 import { Route as DataRouteImport } from './routes/data'
 import { Route as CalculatorsRouteImport } from './routes/calculators'
 import { Route as AiSimulatorRouteImport } from './routes/ai-simulator'
@@ -25,6 +26,11 @@ const UnitEconomicsRoute = UnitEconomicsRouteImport.update({
 const PnlRoute = PnlRouteImport.update({
   id: '/pnl',
   path: '/pnl',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MlAnomalyRoute = MlAnomalyRouteImport.update({
+  id: '/ml-anomaly',
+  path: '/ml-anomaly',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DataRoute = DataRouteImport.update({
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/ai-simulator': typeof AiSimulatorRoute
   '/calculators': typeof CalculatorsRoute
   '/data': typeof DataRoute
+  '/ml-anomaly': typeof MlAnomalyRoute
   '/pnl': typeof PnlRoute
   '/unit-economics': typeof UnitEconomicsRoute
 }
@@ -68,6 +75,7 @@ export interface FileRoutesByTo {
   '/ai-simulator': typeof AiSimulatorRoute
   '/calculators': typeof CalculatorsRoute
   '/data': typeof DataRoute
+  '/ml-anomaly': typeof MlAnomalyRoute
   '/pnl': typeof PnlRoute
   '/unit-economics': typeof UnitEconomicsRoute
 }
@@ -78,6 +86,7 @@ export interface FileRoutesById {
   '/ai-simulator': typeof AiSimulatorRoute
   '/calculators': typeof CalculatorsRoute
   '/data': typeof DataRoute
+  '/ml-anomaly': typeof MlAnomalyRoute
   '/pnl': typeof PnlRoute
   '/unit-economics': typeof UnitEconomicsRoute
 }
@@ -89,6 +98,7 @@ export interface FileRouteTypes {
     | '/ai-simulator'
     | '/calculators'
     | '/data'
+    | '/ml-anomaly'
     | '/pnl'
     | '/unit-economics'
   fileRoutesByTo: FileRoutesByTo
@@ -98,6 +108,7 @@ export interface FileRouteTypes {
     | '/ai-simulator'
     | '/calculators'
     | '/data'
+    | '/ml-anomaly'
     | '/pnl'
     | '/unit-economics'
   id:
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/ai-simulator'
     | '/calculators'
     | '/data'
+    | '/ml-anomaly'
     | '/pnl'
     | '/unit-economics'
   fileRoutesById: FileRoutesById
@@ -117,6 +129,7 @@ export interface RootRouteChildren {
   AiSimulatorRoute: typeof AiSimulatorRoute
   CalculatorsRoute: typeof CalculatorsRoute
   DataRoute: typeof DataRoute
+  MlAnomalyRoute: typeof MlAnomalyRoute
   PnlRoute: typeof PnlRoute
   UnitEconomicsRoute: typeof UnitEconomicsRoute
 }
@@ -135,6 +148,13 @@ declare module '@tanstack/react-router' {
       path: '/pnl'
       fullPath: '/pnl'
       preLoaderRoute: typeof PnlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ml-anomaly': {
+      id: '/ml-anomaly'
+      path: '/ml-anomaly'
+      fullPath: '/ml-anomaly'
+      preLoaderRoute: typeof MlAnomalyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/data': {
@@ -181,6 +201,7 @@ const rootRouteChildren: RootRouteChildren = {
   AiSimulatorRoute: AiSimulatorRoute,
   CalculatorsRoute: CalculatorsRoute,
   DataRoute: DataRoute,
+  MlAnomalyRoute: MlAnomalyRoute,
   PnlRoute: PnlRoute,
   UnitEconomicsRoute: UnitEconomicsRoute,
 }
