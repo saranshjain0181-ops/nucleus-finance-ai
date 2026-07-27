@@ -1107,6 +1107,10 @@ function CalcMatrix() {
               </TabsTrigger>
             );
           })}
+          <TabsTrigger value="optimizer" className="justify-start lg:w-full">
+            <span>Prescriptive Optimizer</span>
+            <Sparkles className="ml-auto h-3 w-3 text-emerald-400" />
+          </TabsTrigger>
         </TabsList>
 
 
@@ -1123,7 +1127,11 @@ function CalcMatrix() {
               </div>
             </TabsContent>
           ))}
+          <TabsContent value="optimizer">
+            <PrescriptiveOptimizer />
+          </TabsContent>
         </div>
+
       </Tabs>
     </div>
   );
