@@ -61,3 +61,69 @@ export function formatCalcContext(snaps: CalcSnapshot[], onlyTouched = true) {
 }
 
 export const calcStoreVersion = () => version;
+
+/* ---------------- Optimizer patch layer (apply / undo / reset) ---------------- */
+
+export type MatrixPatch = Record<string, Record<string, number>>;
+
+let patches: MatrixPatch = {};
+let history: MatrixPatch[] = [];
+const patchListeners = new Set<() => void>();
+
+function emitPatches() {
+  patchListeners.forEach((l) => l());
+}
+
+function subscribePatches(cb: () => void) {
+  patchListeners.add(cb);
+  return () => patchListeners.delete(cb);
+}
+
+/** Merge an optimizer-produced patch into the matrix, keeping an undo snapshot. */
+export function applyMatrixPatch(patch: MatrixPatch) {
+  history = [...history, patches];
+  const next: MatrixPatch = { ...patches };
+  for (const [id, vals] of Object.entries(patch)) {
+    next[id] = { ...(next[id] ?? {}), ...vals };
+  }
+  patches = next;
+  emitPatches();
+}
+
+/** Step back to the state before the most recent apply. */
+export function undoMatrixPatch() {
+  if (!history.length) return;
+  patches = history[history.length - 1];
+  history = history.slice(0, -1);
+  emitPatches();
+}
+
+/** Drop every optimizer patch — back to pre-optimization values. */
+export function resetMatrixPatches() {
+  if (!history.length && !Object.keys(patches).length) return;
+  patches = {};
+  history = [];
+  emitPatches();
+}
+
+const EMPTY_PATCH: Record<string, number> = {};
+
+export function useMatrixPatch(calcId: string) {
+  return useSyncExternalStore(
+    subscribePatches,
+    () => patches[calcId] ?? EMPTY_PATCH,
+    () => patches[calcId] ?? EMPTY_PATCH,
+  );
+}
+
+export function useMatrixPatchMeta() {
+  return useSyncExternalStore(
+    subscribePatches,
+    () => `${history.length}:${Object.keys(patches).length}`,
+    () => `${history.length}:${Object.keys(patches).length}`,
+  );
+}
+
+export function getMatrixPatchMeta() {
+  return { canUndo: history.length > 0, patchedCount: Object.keys(patches).length };
+}

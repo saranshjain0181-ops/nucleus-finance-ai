@@ -1,11 +1,18 @@
 import { useMemo, useState } from "react";
-import { Cpu, Target } from "lucide-react";
+import { Cpu, RotateCcw, Target, Undo2, Wand2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
+import {
+  applyMatrixPatch,
+  undoMatrixPatch,
+  resetMatrixPatches,
+  useMatrixPatchMeta,
+  getMatrixPatchMeta,
+} from "@/lib/calc-live-store";
 
 type Constraint = {
   cash: number;
@@ -103,6 +110,19 @@ export function PrescriptiveOptimizer() {
   const target = c.runwayTarget || baseRunway + 6;
   const sol = useMemo(() => solve({ ...c, runwayTarget: target }), [c, target]);
 
+  useMatrixPatchMeta();
+  const { canUndo, patchedCount } = getMatrixPatchMeta();
+
+  const applyToMatrix = () => {
+    setRan(true);
+    applyMatrixPatch({
+      runway: { cash: Math.round(c.cash + sol.workingCapital), burn: Math.round(sol.newBurn) },
+      "burn-multiple": { burn: Math.round(sol.newBurn) },
+      "rule-of-40": { g: Math.round(sol.newGrowth) },
+      "magic-number": { sm: Math.round(Math.max(1000, c.paidAcq - sol.cutDollars)) },
+    });
+  };
+
   const upd = (k: keyof Constraint, v: number) => setC((p) => ({ ...p, [k]: v }));
 
   return (
@@ -153,7 +173,24 @@ export function PrescriptiveOptimizer() {
               Optimal allocation for: <span className="text-foreground">{goal}</span>
             </CardDescription>
           </div>
-          <Badge variant="outline">{ran ? "Simplex · converged" : "Live preview"}</Badge>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="outline">{ran ? "Simplex · converged" : "Live preview"}</Badge>
+            <Button size="sm" className="gap-2" onClick={applyToMatrix}>
+              <Wand2 className="h-4 w-4" /> Apply to Matrix
+            </Button>
+            <Button size="sm" variant="outline" className="gap-2" onClick={undoMatrixPatch} disabled={!canUndo}>
+              <Undo2 className="h-4 w-4" /> Undo
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-2"
+              onClick={resetMatrixPatches}
+              disabled={!canUndo && patchedCount === 0}
+            >
+              <RotateCcw className="h-4 w-4" /> Reset
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-3">
           {sol.actions.map((a, i) => (
