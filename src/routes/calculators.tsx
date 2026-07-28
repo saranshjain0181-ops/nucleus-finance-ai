@@ -5,10 +5,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Wand2 } from "lucide-react";
+import { RotateCcw, Sparkles, Undo2, Wand2 } from "lucide-react";
 import { PrescriptiveOptimizer } from "@/components/finops/PrescriptiveOptimizer";
 import { CausalAttributionDialog } from "@/components/finops/CausalAttributionDialog";
-import { publishCalc } from "@/lib/calc-live-store";
+import { Badge } from "@/components/ui/badge";
+import {
+  publishCalc,
+  useMatrixPatch,
+  useMatrixPatchMeta,
+  undoMatrixPatch,
+  resetMatrixPatches,
+  getMatrixPatchMeta,
+} from "@/lib/calc-live-store";
 
 
 export const Route = createFileRoute("/calculators")({
@@ -1080,6 +1088,8 @@ const SAMPLE_OVERRIDES: Record<string, Record<string, number>> = {
 function CalcMatrix() {
   const [sampleTick, setSampleTick] = useState(0);
   const autoFill = () => setSampleTick((t) => t + 1);
+  useMatrixPatchMeta();
+  const { canUndo, patchedCount } = getMatrixPatchMeta();
 
 
   return (
@@ -1092,10 +1102,37 @@ function CalcMatrix() {
             {calculatorConfig.length} calculators across {CATEGORIES.length} categories · config-driven
           </p>
         </div>
-        <Button onClick={autoFill} variant="secondary" size="sm" className="gap-2">
-          <Wand2 className="h-4 w-4" />
-          Auto-Fill Sample Data
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {patchedCount > 0 && (
+            <Badge variant="outline" className="text-emerald-400">
+              {patchedCount} optimized
+            </Badge>
+          )}
+          <Button
+            onClick={undoMatrixPatch}
+            disabled={!canUndo}
+            variant="outline"
+            size="sm"
+            className="gap-2"
+          >
+            <Undo2 className="h-4 w-4" />
+            Undo
+          </Button>
+          <Button
+            onClick={resetMatrixPatches}
+            disabled={!canUndo && patchedCount === 0}
+            variant="outline"
+            size="sm"
+            className="gap-2"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Reset Matrix
+          </Button>
+          <Button onClick={autoFill} variant="secondary" size="sm" className="gap-2">
+            <Wand2 className="h-4 w-4" />
+            Auto-Fill Sample Data
+          </Button>
+        </div>
       </header>
 
       <Tabs defaultValue="vc" orientation="vertical" className="flex flex-col gap-6 lg:flex-row">
@@ -1160,6 +1197,16 @@ function DynamicCalcCard({ calc, sampleTick }: { calc: CalcConfig; sampleTick: n
     setTouched(true);
   }, [sampleTick, calc]);
 
+  // Optimizer patches (apply / undo / reset) override the local input values.
+  const patch = useMatrixPatch(calc.id);
+  const patched = Object.keys(patch).length > 0;
+  useEffect(() => {
+    setValues((prev) => {
+      const next = { ...prev, ...patch };
+      return calc.inputs.some((i) => next[i.key] !== prev[i.key]) ? next : prev;
+    });
+  }, [patch, calc]);
+
   const results = useMemo(() => {
     try {
       return calc.compute(values);
@@ -1183,7 +1230,14 @@ function DynamicCalcCard({ calc, sampleTick }: { calc: CalcConfig; sampleTick: n
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">{calc.title}</CardTitle>
+        <CardTitle className="flex items-center justify-between gap-2 text-base">
+          <span>{calc.title}</span>
+          {patched && (
+            <Badge variant="outline" className="shrink-0 text-[10px] text-emerald-400">
+              Optimized
+            </Badge>
+          )}
+        </CardTitle>
         <CardDescription>{calc.description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
