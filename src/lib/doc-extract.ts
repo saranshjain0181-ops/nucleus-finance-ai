@@ -28,10 +28,13 @@ export async function extractTextFromFile(file: File): Promise<string> {
   }
 
   if (name.endsWith(".docx")) {
-    const mammoth = await import("mammoth/mammoth.browser");
+    const mammoth = (await import("mammoth/mammoth.browser.js")) as unknown as {
+      extractRawText: (o: { arrayBuffer: ArrayBuffer }) => Promise<{ value: string }>;
+    };
     const res = await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() });
     return res.value;
   }
+
 
   if (name.endsWith(".xlsx") || name.endsWith(".xls") || name.endsWith(".ods")) {
     const wb = XLSX.read(await file.arrayBuffer(), { type: "array" });
