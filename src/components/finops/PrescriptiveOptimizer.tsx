@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Cpu, RotateCcw, Target, Undo2, Wand2 } from "lucide-react";
+import { Cpu, History, Redo2, RotateCcw, Target, Undo2, Wand2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,10 +9,13 @@ import { Badge } from "@/components/ui/badge";
 import {
   applyMatrixPatch,
   undoMatrixPatch,
+  redoMatrixPatch,
   resetMatrixPatches,
-  useMatrixPatchMeta,
+  restoreMatrixVersion,
+  useMatrixTimeline,
   getMatrixPatchMeta,
 } from "@/lib/calc-live-store";
+
 
 type Constraint = {
   cash: number;
@@ -110,18 +113,22 @@ export function PrescriptiveOptimizer() {
   const target = c.runwayTarget || baseRunway + 6;
   const sol = useMemo(() => solve({ ...c, runwayTarget: target }), [c, target]);
 
-  useMatrixPatchMeta();
-  const { canUndo, patchedCount } = getMatrixPatchMeta();
+  const { timeline, cursor } = useMatrixTimeline();
+  const { canUndo, canRedo, patchedCount } = getMatrixPatchMeta();
 
   const applyToMatrix = () => {
     setRan(true);
-    applyMatrixPatch({
-      runway: { cash: Math.round(c.cash + sol.workingCapital), burn: Math.round(sol.newBurn) },
-      "burn-multiple": { burn: Math.round(sol.newBurn) },
-      "rule-of-40": { g: Math.round(sol.newGrowth) },
-      "magic-number": { sm: Math.round(Math.max(1000, c.paidAcq - sol.cutDollars)) },
-    });
+    applyMatrixPatch(
+      {
+        runway: { cash: Math.round(c.cash + sol.workingCapital), burn: Math.round(sol.newBurn) },
+        "burn-multiple": { burn: Math.round(sol.newBurn) },
+        "rule-of-40": { g: Math.round(sol.newGrowth) },
+        "magic-number": { sm: Math.round(Math.max(1000, c.paidAcq - sol.cutDollars)) },
+      },
+      goal.trim() ? goal.trim().slice(0, 80) : undefined,
+    );
   };
+
 
   const upd = (k: keyof Constraint, v: number) => setC((p) => ({ ...p, [k]: v }));
 
@@ -181,6 +188,10 @@ export function PrescriptiveOptimizer() {
             <Button size="sm" variant="outline" className="gap-2" onClick={undoMatrixPatch} disabled={!canUndo}>
               <Undo2 className="h-4 w-4" /> Undo
             </Button>
+            <Button size="sm" variant="outline" className="gap-2" onClick={redoMatrixPatch} disabled={!canRedo}>
+              <Redo2 className="h-4 w-4" /> Redo
+            </Button>
+
             <Button
               size="sm"
               variant="outline"
@@ -214,7 +225,63 @@ export function PrescriptiveOptimizer() {
           </div>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <History className="h-4 w-4 text-emerald-400" /> Optimization History
+          </CardTitle>
+          <CardDescription>
+            Every applied allocation is versioned — restore any prior matrix state in one click.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {timeline.map((v, i) => {
+            const active = i === cursor;
+            return (
+              <div
+                key={v.id}
+                className={`flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3 transition-colors ${
+                  active ? "border-emerald-500/50 bg-emerald-500/10" : "border-border/50 bg-muted/20"
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <span
+                    className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${
+                      active ? "bg-emerald-400" : i < cursor ? "bg-muted-foreground" : "bg-border"
+                    }`}
+                  />
+                  <div>
+                    <div className="text-sm font-medium">
+                      {i === 0 ? v.label : `v${i} · ${v.label}`}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {new Date(v.at).toLocaleTimeString()}
+                      {v.changed.length ? ` · ${v.changed.length} calculators patched` : " · original inputs"}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {active ? (
+                    <Badge variant="secondary">Current</Badge>
+                  ) : (
+                    <Button size="sm" variant="outline" onClick={() => restoreMatrixVersion(v.id)}>
+                      Restore
+                    </Button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+          {timeline.length === 1 && (
+            <p className="text-xs text-muted-foreground">
+              No optimizations applied yet — solve a goal and hit “Apply to Matrix” to start the timeline.
+            </p>
+          )}
+        </CardContent>
+      </Card>
     </div>
+
   );
 }
 
