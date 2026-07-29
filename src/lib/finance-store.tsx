@@ -43,13 +43,20 @@ export type FinanceState = {
     kind: "csv" | "excel" | "pdf" | "doc" | "slides" | "text" | "other";
     rowsImported?: number;
     preview?: string;
+    /** Full extracted text (client-side parse) for PDF/DOCX/TXT sources. */
+    text?: string;
   }[];
+  // Double-entry books
+  ledger: LedgerEntry[];
+  /** Figures accepted from uploaded documents, used to seed the Calculator Matrix. */
+  extractedFields: ExtractedFields;
   // Latest AI CFO investor narrative (persisted for PDF export)
   latestNarrative: string;
   narrativeAt: number | null;
   // Settings
   geminiApiKey: string;
 };
+
 
 const DEFAULT_STATE: FinanceState = {
   revenue: 1_200_000,
