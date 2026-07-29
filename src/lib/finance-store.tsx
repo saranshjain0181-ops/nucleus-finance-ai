@@ -85,6 +85,9 @@ const DEFAULT_STATE: FinanceState = {
   subscriptionPrice: 49,
   customRows: [],
   attachments: [],
+  ledger: [],
+  extractedFields: {},
+
   latestNarrative: "",
   narrativeAt: null,
   geminiApiKey: "",
