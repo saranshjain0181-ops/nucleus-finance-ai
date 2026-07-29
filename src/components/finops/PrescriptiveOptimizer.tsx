@@ -113,18 +113,22 @@ export function PrescriptiveOptimizer() {
   const target = c.runwayTarget || baseRunway + 6;
   const sol = useMemo(() => solve({ ...c, runwayTarget: target }), [c, target]);
 
-  useMatrixPatchMeta();
-  const { canUndo, patchedCount } = getMatrixPatchMeta();
+  const { timeline, cursor } = useMatrixTimeline();
+  const { canUndo, canRedo, patchedCount } = getMatrixPatchMeta();
 
   const applyToMatrix = () => {
     setRan(true);
-    applyMatrixPatch({
-      runway: { cash: Math.round(c.cash + sol.workingCapital), burn: Math.round(sol.newBurn) },
-      "burn-multiple": { burn: Math.round(sol.newBurn) },
-      "rule-of-40": { g: Math.round(sol.newGrowth) },
-      "magic-number": { sm: Math.round(Math.max(1000, c.paidAcq - sol.cutDollars)) },
-    });
+    applyMatrixPatch(
+      {
+        runway: { cash: Math.round(c.cash + sol.workingCapital), burn: Math.round(sol.newBurn) },
+        "burn-multiple": { burn: Math.round(sol.newBurn) },
+        "rule-of-40": { g: Math.round(sol.newGrowth) },
+        "magic-number": { sm: Math.round(Math.max(1000, c.paidAcq - sol.cutDollars)) },
+      },
+      goal.trim() ? goal.trim().slice(0, 80) : undefined,
+    );
   };
+
 
   const upd = (k: keyof Constraint, v: number) => setC((p) => ({ ...p, [k]: v }));
 
