@@ -1,4 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import type { LedgerEntry } from "./ledger";
+import type { ExtractedFields } from "./matrix-mapping";
+
 
 export type FinanceState = {
   // P&L rows
