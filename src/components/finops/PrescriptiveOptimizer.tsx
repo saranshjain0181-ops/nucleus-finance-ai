@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Cpu, RotateCcw, Target, Undo2, Wand2 } from "lucide-react";
+import { Cpu, History, Redo2, RotateCcw, Target, Undo2, Wand2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,10 +9,13 @@ import { Badge } from "@/components/ui/badge";
 import {
   applyMatrixPatch,
   undoMatrixPatch,
+  redoMatrixPatch,
   resetMatrixPatches,
-  useMatrixPatchMeta,
+  restoreMatrixVersion,
+  useMatrixTimeline,
   getMatrixPatchMeta,
 } from "@/lib/calc-live-store";
+
 
 type Constraint = {
   cash: number;
