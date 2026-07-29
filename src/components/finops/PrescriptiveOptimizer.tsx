@@ -225,7 +225,63 @@ export function PrescriptiveOptimizer() {
           </div>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <History className="h-4 w-4 text-emerald-400" /> Optimization History
+          </CardTitle>
+          <CardDescription>
+            Every applied allocation is versioned — restore any prior matrix state in one click.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {timeline.map((v, i) => {
+            const active = i === cursor;
+            return (
+              <div
+                key={v.id}
+                className={`flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3 transition-colors ${
+                  active ? "border-emerald-500/50 bg-emerald-500/10" : "border-border/50 bg-muted/20"
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <span
+                    className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${
+                      active ? "bg-emerald-400" : i < cursor ? "bg-muted-foreground" : "bg-border"
+                    }`}
+                  />
+                  <div>
+                    <div className="text-sm font-medium">
+                      {i === 0 ? v.label : `v${i} · ${v.label}`}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {new Date(v.at).toLocaleTimeString()}
+                      {v.changed.length ? ` · ${v.changed.length} calculators patched` : " · original inputs"}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {active ? (
+                    <Badge variant="secondary">Current</Badge>
+                  ) : (
+                    <Button size="sm" variant="outline" onClick={() => restoreMatrixVersion(v.id)}>
+                      Restore
+                    </Button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+          {timeline.length === 1 && (
+            <p className="text-xs text-muted-foreground">
+              No optimizations applied yet — solve a goal and hit “Apply to Matrix” to start the timeline.
+            </p>
+          )}
+        </CardContent>
+      </Card>
     </div>
+
   );
 }
 
