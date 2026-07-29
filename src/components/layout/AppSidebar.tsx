@@ -9,6 +9,7 @@ import {
   TrendingUp,
   Radar,
   Users,
+  BookOpen,
 } from "lucide-react";
 import {
   Sidebar,
@@ -25,6 +26,7 @@ import {
 const items = [
   { title: "Overview", url: "/", icon: LineChart },
   { title: "Data Ingestion", url: "/data", icon: Database },
+  { title: "Ledger & Books", url: "/ledger", icon: BookOpen },
   { title: "P&L Waterfall", url: "/pnl", icon: BarChart3 },
   { title: "Unit Economics", url: "/unit-economics", icon: Users },
   { title: "AI Cost Simulator", url: "/ai-simulator", icon: TrendingUp },
