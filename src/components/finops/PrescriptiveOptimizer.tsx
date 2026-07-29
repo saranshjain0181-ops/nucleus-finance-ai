@@ -188,6 +188,10 @@ export function PrescriptiveOptimizer() {
             <Button size="sm" variant="outline" className="gap-2" onClick={undoMatrixPatch} disabled={!canUndo}>
               <Undo2 className="h-4 w-4" /> Undo
             </Button>
+            <Button size="sm" variant="outline" className="gap-2" onClick={redoMatrixPatch} disabled={!canRedo}>
+              <Redo2 className="h-4 w-4" /> Redo
+            </Button>
+
             <Button
               size="sm"
               variant="outline"
