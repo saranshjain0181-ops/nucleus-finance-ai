@@ -1,27 +1,61 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
-import { Upload, Plus, Trash2, FileText, FileSpreadsheet, FileType, Paperclip } from "lucide-react";
+import { Upload, Plus, Trash2, FileText, FileSpreadsheet, FileType, Paperclip, Check, X, Sparkles, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useFinance, type FinanceState } from "@/lib/finance-store";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
+import {
+  detectFields,
+  extractTextFromFile,
+  fileToRows,
+  looksLikeLedger,
+  rowsToLedger,
+  type DetectedValue,
+  type FieldKey,
+} from "@/lib/doc-extract";
+import type { ExtractedFields } from "@/lib/matrix-mapping";
 
 export const Route = createFileRoute("/data")({
   head: () => ({
     meta: [
       { title: "Data Ingestion — FinOps Studio" },
-      { name: "description", content: "Upload CSV, Excel, PDF, docs & slides or manually edit raw revenue, COGS, and opex." },
+      { name: "description", content: "Upload CSV, Excel, PDF, docs & slides — figures and ledger entries are read out automatically." },
+      { property: "og:title", content: "Data Ingestion — FinOps Studio" },
+      { property: "og:description", content: "Upload your books and let the studio read the numbers straight into your models." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: DataView,
 });
 
 type AttachmentKind = FinanceState["attachments"][number]["kind"];
+
+/** Detected field keys that map directly onto core P&L / unit-economics state. */
+const STATE_FIELDS: Partial<Record<FieldKey, keyof FinanceState>> = {
+  revenue: "revenue",
+  discounts: "discounts",
+  cogs: "cogs",
+  salaries: "salaries",
+  marketing: "marketing",
+  otherOpex: "otherOpex",
+  depreciation: "depreciation",
+  interest: "interest",
+  taxRate: "taxRate",
+  cac: "cac",
+  arpu: "arpu",
+  grossMarginPct: "grossMarginPct",
+  churnRate: "churnRate",
+  mau: "mau",
+  subscriptionPrice: "subscriptionPrice",
+};
 
 function classifyFile(file: File): AttachmentKind {
   const n = file.name.toLowerCase();
@@ -44,6 +78,8 @@ function iconFor(kind: AttachmentKind) {
 function DataView() {
   const { state, update, set } = useFinance();
   const [drag, setDrag] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [detected, setDetected] = useState<DetectedValue[]>([]);
 
   const parseCsvText = useCallback(
     (text: string, source: string) => {
@@ -91,7 +127,12 @@ function DataView() {
     [state.customRows, set],
   );
 
-  const addAttachment = (file: File, kind: AttachmentKind, rowsImported?: number, preview?: string) => {
+  const addAttachment = (
+    file: File,
+    kind: AttachmentKind,
+    rowsImported?: number,
+    text?: string,
+  ) => {
     set("attachments", [
       ...state.attachments,
       {
@@ -102,42 +143,101 @@ function DataView() {
         addedAt: Date.now(),
         kind,
         rowsImported,
-        preview,
+        preview: text?.slice(0, 400),
+        text,
       },
     ]);
   };
 
+  const mergeDetected = (found: DetectedValue[]) =>
+    setDetected((prev) => {
+      const map = new Map(prev.map((d) => [d.id, d]));
+      found.forEach((f) => map.set(f.id, f));
+      return Array.from(map.values());
+    });
+
   const handleFiles = async (files: FileList | File[]) => {
     const list = Array.from(files);
+    setBusy(true);
+    let ledgerAdded = 0;
+    const ledgerBatch: FinanceState["ledger"] = [];
+
     for (const file of list) {
       const kind = classifyFile(file);
       try {
-        if (kind === "csv" || kind === "text") {
+        // 1. Tabular files: ledger export or label/value rows.
+        if (kind === "csv" || kind === "excel") {
+          const rows = await fileToRows(file).catch(() => [] as Record<string, unknown>[]);
+          if (looksLikeLedger(rows)) {
+            const entries = rowsToLedger(rows, file.name);
+            ledgerBatch.push(...entries);
+            ledgerAdded += entries.length;
+            addAttachment(file, kind, entries.length);
+            toast.success(`Read ${entries.length} ledger entries from ${file.name}`);
+            continue;
+          }
+        }
+
+        if (kind === "csv") {
           const text = await file.text();
-          const imported = kind === "csv" ? parseCsvText(text, file.name) : 0;
-          addAttachment(file, kind, imported, text.slice(0, 400));
+          const imported = parseCsvText(text, file.name);
+          mergeDetected(detectFields(text, file.name));
+          addAttachment(file, kind, imported, text);
         } else if (kind === "excel") {
           const imported = await parseWorkbook(file);
-          addAttachment(file, kind, imported);
+          const text = await extractTextFromFile(file);
+          mergeDetected(detectFields(text, file.name));
+          addAttachment(file, kind, imported, text);
+        } else if (kind === "pdf" || kind === "doc" || kind === "text") {
+          const text = await extractTextFromFile(file);
+          const found = detectFields(text, file.name);
+          mergeDetected(found);
+          addAttachment(file, kind, 0, text);
+          toast.message(`Read ${file.name}`, {
+            description: found.length
+              ? `${found.length} figures detected — review them below.`
+              : "No recognisable figures found; text stored for the AI CFO.",
+          });
         } else {
-          // pdf / doc / slides / other — store as reference attachment
           addAttachment(file, kind);
           toast.message(`Attached ${file.name}`, {
-            description:
-              kind === "pdf" || kind === "doc" || kind === "slides"
-                ? "Stored as reference. Add key figures manually below."
-                : "Attached to this workspace.",
+            description: "Stored as reference. Add key figures manually below.",
           });
         }
       } catch (e) {
         toast.error(`Failed to import ${file.name}: ${e instanceof Error ? e.message : "unknown"}`);
       }
     }
+
+    if (ledgerBatch.length) set("ledger", [...state.ledger, ...ledgerBatch]);
+    if (ledgerAdded) toast.success(`${ledgerAdded} entries posted to the general ledger`);
+    setBusy(false);
+  };
+
+  const acceptDetected = (d: DetectedValue) => {
+    const stateKey = STATE_FIELDS[d.key];
+    if (stateKey) update({ [stateKey]: d.value } as never);
+    const nextExtracted: ExtractedFields = { ...state.extractedFields, [d.key]: d.value };
+    set("extractedFields", nextExtracted);
+    setDetected((prev) => prev.filter((x) => x.id !== d.id));
+    toast.success(`${d.label} set to ${d.value.toLocaleString()}`);
+  };
+
+  const acceptAll = () => {
+    const patch: Partial<FinanceState> = {};
+    const nextExtracted: ExtractedFields = { ...state.extractedFields };
+    detected.forEach((d) => {
+      const stateKey = STATE_FIELDS[d.key];
+      if (stateKey) (patch as Record<string, number>)[stateKey] = d.value;
+      nextExtracted[d.key] = d.value;
+    });
+    update({ ...patch, extractedFields: nextExtracted });
+    toast.success(`Applied ${detected.length} detected figures`);
+    setDetected([]);
   };
 
   const removeAttachment = (id: string) =>
     set("attachments", state.attachments.filter((a) => a.id !== id));
-
 
   const addRow = () => {
     set("customRows", [
@@ -167,13 +267,16 @@ function DataView() {
     { key: "taxRate", label: "Tax Rate (%)", category: "Tax" },
   ];
 
+  const acceptedFields = Object.entries(state.extractedFields) as [FieldKey, number][];
+
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-6">
       <header>
         <p className="text-xs uppercase tracking-widest text-muted-foreground">Step 1</p>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight">Data Ingestion</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Drop a CSV of your line items or edit the grid below. All values feed the P&L, unit economics, and AI CFO.
+          Drop your statements, ledgers or decks — figures are read out of the documents and feed the P&amp;L, books,
+          calculators and AI CFO.
         </p>
       </header>
 
@@ -195,12 +298,15 @@ function DataView() {
             <Upload className="h-6 w-6" />
           </div>
           <div>
-            <p className="text-sm font-medium">Drop any files here — multiple welcome</p>
+            <p className="text-sm font-medium">
+              {busy ? "Reading your documents…" : "Drop any files here — multiple welcome"}
+            </p>
             <p className="text-xs text-muted-foreground">
-              CSV & Excel auto-import as rows · PDF / DOCX / PPTX / TXT stored as reference
+              CSV / Excel → rows or ledger entries · PDF / DOCX / TXT → text parsed for figures
             </p>
             <p className="mt-1 text-[11px] text-muted-foreground">
-              CSV / Excel format: <code>label, value, category</code> (revenue|cogs|opex)
+              Ledger format: <code>date, account, type, description, debit, credit</code> · P&amp;L format:{" "}
+              <code>label, value, category</code>
             </p>
           </div>
           <label>
@@ -220,6 +326,91 @@ function DataView() {
           </label>
         </CardContent>
       </Card>
+
+      {detected.length > 0 && (
+        <Card className="border-emerald-500/40">
+          <CardHeader className="flex flex-row items-start justify-between gap-3">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Sparkles className="h-4 w-4 text-emerald-400" /> Detected values ({detected.length})
+              </CardTitle>
+              <CardDescription>Nothing is applied until you accept it.</CardDescription>
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={acceptAll} className="gap-2">
+                <Check className="h-4 w-4" /> Accept all
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setDetected([])}>
+                Dismiss
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <ul className="divide-y divide-border/50">
+              {detected.map((d) => (
+                <li key={d.id} className="flex items-center gap-3 py-2.5">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium">
+                      {d.label}{" "}
+                      <span className="tabular-nums text-emerald-400">
+                        {d.unit === "percent" ? `${d.value}%` : d.value.toLocaleString()}
+                      </span>
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {d.source} · “{d.context}”
+                    </p>
+                  </div>
+                  <Button size="icon" variant="ghost" onClick={() => acceptDetected(d)}>
+                    <Check className="h-4 w-4 text-emerald-400" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => setDetected((p) => p.filter((x) => x.id !== d.id))}
+                  >
+                    <X className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
+
+      {acceptedFields.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Figures from your documents</CardTitle>
+            <CardDescription>
+              These seed the Calculator Matrix — use “Fill from My Data” there to apply them.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-2">
+            {acceptedFields.map(([k, v]) => (
+              <Badge key={k} variant="outline" className="gap-1 text-emerald-400">
+                {k}: {v.toLocaleString()}
+              </Badge>
+            ))}
+            <Button size="sm" variant="ghost" onClick={() => set("extractedFields", {})}>
+              Clear
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {state.ledger.length > 0 && (
+        <Card>
+          <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4 text-sm">
+            <span className="flex items-center gap-2 text-muted-foreground">
+              <BookOpen className="h-4 w-4 text-emerald-400" />
+              {state.ledger.length} ledger entries posted from your files.
+            </span>
+            <Button size="sm" variant="outline" asChild>
+              <a href="/ledger">Open Ledger &amp; Books</a>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {state.attachments.length > 0 && (
         <Card>
@@ -242,6 +433,7 @@ function DataView() {
                         {typeof a.rowsImported === "number" && a.rowsImported > 0
                           ? ` · ${a.rowsImported} rows imported`
                           : ""}
+                        {a.text ? ` · ${a.text.length.toLocaleString()} chars read` : ""}
                       </p>
                     </div>
                     <Button size="icon" variant="ghost" onClick={() => removeAttachment(a.id)}>
@@ -255,10 +447,9 @@ function DataView() {
         </Card>
       )}
 
-
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Core P&L inputs</CardTitle>
+          <CardTitle className="text-base">Core P&amp;L inputs</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-3">
