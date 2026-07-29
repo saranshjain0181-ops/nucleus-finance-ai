@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { RotateCcw, Sparkles, Undo2, Wand2 } from "lucide-react";
+import { Database, RotateCcw, Sparkles, Undo2, Wand2 } from "lucide-react";
 import { PrescriptiveOptimizer } from "@/components/finops/PrescriptiveOptimizer";
 import { CausalAttributionDialog } from "@/components/finops/CausalAttributionDialog";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +16,11 @@ import {
   undoMatrixPatch,
   resetMatrixPatches,
   getMatrixPatchMeta,
+  applyMatrixPatch,
 } from "@/lib/calc-live-store";
+import { useFinance } from "@/lib/finance-store";
+import { buildMatrixPatchFromData } from "@/lib/matrix-mapping";
+import { toast } from "sonner";
 
 
 export const Route = createFileRoute("/calculators")({
@@ -1090,6 +1094,18 @@ function CalcMatrix() {
   const autoFill = () => setSampleTick((t) => t + 1);
   useMatrixPatchMeta();
   const { canUndo, patchedCount } = getMatrixPatchMeta();
+  const { state } = useFinance();
+
+  const fillFromMyData = () => {
+    const { patch, used } = buildMatrixPatchFromData(state, state.ledger, state.extractedFields);
+    applyMatrixPatch(patch, "Filled from uploaded data");
+    toast.success(`Filled ${Object.keys(patch).length} calculators from your data`, {
+      description: used
+        .slice(0, 4)
+        .map((u) => `${u.label}: ${Math.round(u.value).toLocaleString()}`)
+        .join(" · "),
+    });
+  };
 
 
   return (
@@ -1127,6 +1143,10 @@ function CalcMatrix() {
           >
             <RotateCcw className="h-4 w-4" />
             Reset Matrix
+          </Button>
+          <Button onClick={fillFromMyData} size="sm" className="gap-2">
+            <Database className="h-4 w-4" />
+            Fill from My Data
           </Button>
           <Button onClick={autoFill} variant="secondary" size="sm" className="gap-2">
             <Wand2 className="h-4 w-4" />
