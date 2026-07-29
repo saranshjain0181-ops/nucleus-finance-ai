@@ -66,11 +66,31 @@ export const calcStoreVersion = () => version;
 
 export type MatrixPatch = Record<string, Record<string, number>>;
 
+export type MatrixVersion = {
+  id: string;
+  label: string;
+  at: number;
+  /** Full patch state as of this version. */
+  state: MatrixPatch;
+  /** Calculator ids changed by this step. */
+  changed: string[];
+};
+
+const BASELINE: MatrixVersion = {
+  id: "baseline",
+  label: "Pre-optimization baseline",
+  at: Date.now(),
+  state: {},
+  changed: [],
+};
+
+let timeline: MatrixVersion[] = [BASELINE];
+let cursor = 0;
 let patches: MatrixPatch = {};
-let history: MatrixPatch[] = [];
 const patchListeners = new Set<() => void>();
 
 function emitPatches() {
+  patches = timeline[cursor]?.state ?? {};
   patchListeners.forEach((l) => l());
 }
 
@@ -79,30 +99,54 @@ function subscribePatches(cb: () => void) {
   return () => patchListeners.delete(cb);
 }
 
-/** Merge an optimizer-produced patch into the matrix, keeping an undo snapshot. */
-export function applyMatrixPatch(patch: MatrixPatch) {
-  history = [...history, patches];
+/** Merge an optimizer-produced patch into the matrix, recording a timeline version. */
+export function applyMatrixPatch(patch: MatrixPatch, label?: string) {
   const next: MatrixPatch = { ...patches };
   for (const [id, vals] of Object.entries(patch)) {
     next[id] = { ...(next[id] ?? {}), ...vals };
   }
-  patches = next;
+  // Branching from an earlier restored point drops the redo tail.
+  timeline = [
+    ...timeline.slice(0, cursor + 1),
+    {
+      id: `v-${Date.now()}-${timeline.length}`,
+      label: label || `Optimization #${timeline.length}`,
+      at: Date.now(),
+      state: next,
+      changed: Object.keys(patch),
+    },
+  ];
+  cursor = timeline.length - 1;
   emitPatches();
 }
 
 /** Step back to the state before the most recent apply. */
 export function undoMatrixPatch() {
-  if (!history.length) return;
-  patches = history[history.length - 1];
-  history = history.slice(0, -1);
+  if (cursor <= 0) return;
+  cursor -= 1;
   emitPatches();
 }
 
-/** Drop every optimizer patch — back to pre-optimization values. */
+/** Step forward again after an undo. */
+export function redoMatrixPatch() {
+  if (cursor >= timeline.length - 1) return;
+  cursor += 1;
+  emitPatches();
+}
+
+/** Jump to any recorded version in the timeline. */
+export function restoreMatrixVersion(id: string) {
+  const idx = timeline.findIndex((v) => v.id === id);
+  if (idx < 0 || idx === cursor) return;
+  cursor = idx;
+  emitPatches();
+}
+
+/** Drop every optimizer patch and clear the timeline. */
 export function resetMatrixPatches() {
-  if (!history.length && !Object.keys(patches).length) return;
-  patches = {};
-  history = [];
+  if (timeline.length === 1 && cursor === 0) return;
+  timeline = [{ ...BASELINE, at: Date.now() }];
+  cursor = 0;
   emitPatches();
 }
 
@@ -116,14 +160,30 @@ export function useMatrixPatch(calcId: string) {
   );
 }
 
+function metaKey() {
+  return `${cursor}:${timeline.length}:${Object.keys(patches).length}`;
+}
+
 export function useMatrixPatchMeta() {
-  return useSyncExternalStore(
-    subscribePatches,
-    () => `${history.length}:${Object.keys(patches).length}`,
-    () => `${history.length}:${Object.keys(patches).length}`,
-  );
+  return useSyncExternalStore(subscribePatches, metaKey, metaKey);
 }
 
 export function getMatrixPatchMeta() {
-  return { canUndo: history.length > 0, patchedCount: Object.keys(patches).length };
+  return {
+    canUndo: cursor > 0,
+    canRedo: cursor < timeline.length - 1,
+    patchedCount: Object.keys(patches).length,
+    cursor,
+    versionCount: timeline.length,
+  };
 }
+
+export function getMatrixTimeline() {
+  return timeline;
+}
+
+export function useMatrixTimeline() {
+  useSyncExternalStore(subscribePatches, metaKey, metaKey);
+  return { timeline, cursor };
+}
+
