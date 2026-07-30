@@ -163,13 +163,50 @@ function DataView() {
     setBusy(true);
     let ledgerAdded = 0;
     const ledgerBatch: FinanceState["ledger"] = [];
+    const subBatch: SubRecord[] = [];
+    const subSources: string[] = [];
 
     for (const file of list) {
       const kind = classifyFile(file);
+      const isJson = file.name.toLowerCase().endsWith(".json");
       try {
-        // 1. Tabular files: ledger export or label/value rows.
+        // 0. JSON customer/subscription exports.
+        if (isJson) {
+          const raw = await file.text();
+          const parsed = JSON.parse(raw);
+          const rows: Record<string, unknown>[] = Array.isArray(parsed)
+            ? parsed
+            : Array.isArray(parsed?.records)
+              ? parsed.records
+              : [];
+          const recs = rowsToSubRecords(rows);
+          if (recs.length) {
+            subBatch.push(...recs);
+            subSources.push(file.name);
+            addAttachment(file, "other", recs.length, raw.slice(0, 4000));
+            toast.success(`Read ${recs.length} subscription records from ${file.name}`);
+          } else {
+            addAttachment(file, "other", 0, raw.slice(0, 4000));
+            mergeDetected(detectFields(raw, file.name));
+          }
+          continue;
+        }
+
+        // 1. Tabular files: subscription data, ledger export, or label/value rows.
         if (kind === "csv" || kind === "excel") {
           const rows = await fileToRows(file).catch(() => [] as Record<string, unknown>[]);
+
+          if (looksLikeSubscriptions(rows)) {
+            const recs = rowsToSubRecords(rows);
+            if (recs.length) {
+              subBatch.push(...recs);
+              subSources.push(file.name);
+              addAttachment(file, kind, recs.length);
+              toast.success(`Read ${recs.length} subscription records from ${file.name}`);
+              continue;
+            }
+          }
+
           if (looksLikeLedger(rows)) {
             const entries = rowsToLedger(rows, file.name);
             ledgerBatch.push(...entries);
@@ -213,8 +250,26 @@ function DataView() {
 
     if (ledgerBatch.length) set("ledger", [...state.ledger, ...ledgerBatch]);
     if (ledgerAdded) toast.success(`${ledgerAdded} entries posted to the general ledger`);
+
+    if (subBatch.length) {
+      const existing = state.cohortData?.records ?? [];
+      const merged = new Map(existing.map((r) => [`${r.customerId}|${r.month}`, r]));
+      subBatch.forEach((r) => merged.set(`${r.customerId}|${r.month}`, r));
+      update({
+        cohortData: {
+          records: Array.from(merged.values()),
+          source: subSources.join(", "),
+          importedAt: Date.now(),
+        },
+        manualOverride: false,
+        manualCohorts: null,
+        manualNrr: null,
+      });
+      toast.success(`Cohort retention & NRR updated from ${subSources.length} file(s)`);
+    }
     setBusy(false);
   };
+
 
   const acceptDetected = (d: DetectedValue) => {
     const stateKey = STATE_FIELDS[d.key];
