@@ -20,7 +20,9 @@ import {
   type DetectedValue,
   type FieldKey,
 } from "@/lib/doc-extract";
+import { looksLikeSubscriptions, rowsToSubRecords, type SubRecord } from "@/lib/cohorts";
 import type { ExtractedFields } from "@/lib/matrix-mapping";
+
 
 export const Route = createFileRoute("/data")({
   head: () => ({
