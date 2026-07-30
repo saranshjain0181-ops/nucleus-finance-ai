@@ -58,10 +58,11 @@ function LedgerView() {
   const removeRow = (id: string) => setEntries(entries.filter((e) => e.id !== id));
 
   const exportCsv = () => {
-    const header = "date,account,type,description,debit,credit";
+    const header = "date,account,type,subtype,description,debit,credit";
     const body = entries
-      .map((e) => [e.date, e.account, e.type, e.description, e.debit, e.credit].join(","))
+      .map((e) => [e.date, e.account, e.type, e.subtype ?? "", e.description, e.debit, e.credit].join(","))
       .join("\n");
+
     const url = URL.createObjectURL(new Blob([`${header}\n${body}`], { type: "text/csv" }));
     const a = document.createElement("a");
     a.href = url;
