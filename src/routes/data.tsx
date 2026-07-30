@@ -370,7 +370,7 @@ function DataView() {
             <input
               type="file"
               multiple
-              accept=".csv,.txt,.md,.xlsx,.xls,.ods,.pdf,.doc,.docx,.ppt,.pptx,.key"
+              accept=".csv,.json,.txt,.md,.xlsx,.xls,.ods,.pdf,.doc,.docx,.ppt,.pptx,.key"
               className="hidden"
               onChange={(e) => {
                 if (e.target.files?.length) handleFiles(e.target.files);
