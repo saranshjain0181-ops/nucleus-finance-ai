@@ -1,6 +1,10 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { LedgerEntry } from "./ledger";
 import type { ExtractedFields } from "./matrix-mapping";
+import type { CohortData, CohortRow, NrrPoint } from "./cohorts";
+import { DEFAULT_TAX_SETTINGS, type TaxSettings } from "./tax-engine";
+
+
 
 
 export type FinanceState = {
