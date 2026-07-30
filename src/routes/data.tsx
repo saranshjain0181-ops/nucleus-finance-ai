@@ -469,6 +469,22 @@ function DataView() {
         </Card>
       )}
 
+      {state.cohortData && state.cohortData.records.length > 0 && (
+        <Card>
+          <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4 text-sm">
+            <span className="flex items-center gap-2 text-muted-foreground">
+              <Sparkles className="h-4 w-4 text-emerald-400" />
+              {state.cohortData.records.length} subscription records parsed from{" "}
+              {state.cohortData.source || "your uploads"} — cohort retention &amp; NRR are live.
+            </span>
+            <Button size="sm" variant="outline" asChild>
+              <a href="/unit-economics">Open Unit Economics</a>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+
       {state.attachments.length > 0 && (
         <Card>
           <CardHeader>
