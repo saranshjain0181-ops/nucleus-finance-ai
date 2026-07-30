@@ -6,11 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useFinance, fmtCurrency } from "@/lib/finance-store";
 import {
   ACCOUNT_TYPES,
+  ACCOUNT_TYPE_MAP,
   computeBalanceSheet,
   computeTrialBalance,
   emptyEntry,
@@ -18,7 +19,9 @@ import {
   type LedgerEntry,
   type TrialBalanceRow,
 } from "@/lib/ledger";
+import { TaxEngineCard } from "@/components/finops/TaxEngineCard";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/ledger")({
   head: () => ({
