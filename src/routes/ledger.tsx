@@ -6,11 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useFinance, fmtCurrency } from "@/lib/finance-store";
 import {
   ACCOUNT_TYPES,
+  ACCOUNT_TYPE_MAP,
   computeBalanceSheet,
   computeTrialBalance,
   emptyEntry,
@@ -18,7 +19,9 @@ import {
   type LedgerEntry,
   type TrialBalanceRow,
 } from "@/lib/ledger";
+import { TaxEngineCard } from "@/components/finops/TaxEngineCard";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/ledger")({
   head: () => ({
@@ -55,10 +58,11 @@ function LedgerView() {
   const removeRow = (id: string) => setEntries(entries.filter((e) => e.id !== id));
 
   const exportCsv = () => {
-    const header = "date,account,type,description,debit,credit";
+    const header = "date,account,type,subtype,description,debit,credit";
     const body = entries
-      .map((e) => [e.date, e.account, e.type, e.description, e.debit, e.credit].join(","))
+      .map((e) => [e.date, e.account, e.type, e.subtype ?? "", e.description, e.debit, e.credit].join(","))
       .join("\n");
+
     const url = URL.createObjectURL(new Blob([`${header}\n${body}`], { type: "text/csv" }));
     const a = document.createElement("a");
     a.href = url;
@@ -93,7 +97,10 @@ function LedgerView() {
         </div>
       </header>
 
+      <TaxEngineCard />
+
       <Tabs defaultValue="ledger" className="space-y-6">
+
         <TabsList>
           <TabsTrigger value="ledger" className="gap-2">
             <BookOpen className="h-4 w-4" /> General Ledger
@@ -119,17 +126,19 @@ function LedgerView() {
                   <TableRow>
                     <TableHead className="w-36">Date</TableHead>
                     <TableHead className="min-w-40">Account</TableHead>
-                    <TableHead className="w-36">Type</TableHead>
+                    <TableHead className="w-56">Type</TableHead>
+                    <TableHead className="w-48">Sub-classification</TableHead>
                     <TableHead className="min-w-40">Description</TableHead>
                     <TableHead className="w-32 text-right">Debit</TableHead>
                     <TableHead className="w-32 text-right">Credit</TableHead>
                     <TableHead className="w-10" />
                   </TableRow>
+
                 </TableHeader>
                 <TableBody>
                   {entries.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center text-xs text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center text-xs text-muted-foreground">
                         No entries yet — add one, or upload a ledger file in Data Ingestion.
                       </TableCell>
                     </TableRow>
@@ -155,20 +164,48 @@ function LedgerView() {
                       <TableCell>
                         <Select
                           value={e.type}
-                          onValueChange={(v) => patchRow(e.id, { type: v as AccountType })}
+                          onValueChange={(v) =>
+                            patchRow(e.id, { type: v as AccountType, subtype: "" })
+                          }
                         >
                           <SelectTrigger className="h-8">
                             <SelectValue />
                           </SelectTrigger>
+                          <SelectContent className="max-h-80">
+                            {(["Core Financial", "Engineering Economics & Cost Accounting"] as const).map(
+                              (section) => (
+                                <SelectGroup key={section}>
+                                  <SelectLabel className="text-[10px] uppercase tracking-wide">{section}</SelectLabel>
+                                  {ACCOUNT_TYPES.filter((t) => t.section === section).map((t) => (
+                                    <SelectItem key={t.id} value={t.id}>
+                                      {t.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectGroup>
+                              ),
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                          value={e.subtype || "__none"}
+                          onValueChange={(v) => patchRow(e.id, { subtype: v === "__none" ? "" : v })}
+                        >
+                          <SelectTrigger className="h-8">
+                            <SelectValue placeholder="—" />
+                          </SelectTrigger>
                           <SelectContent>
-                            {ACCOUNT_TYPES.map((t) => (
-                              <SelectItem key={t.id} value={t.id}>
-                                {t.label}
+                            <SelectItem value="__none">—</SelectItem>
+                            {(ACCOUNT_TYPE_MAP[e.type]?.subtypes ?? []).map((st) => (
+                              <SelectItem key={st} value={st}>
+                                {st}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       </TableCell>
+
                       <TableCell>
                         <Input
                           value={e.description}
@@ -247,7 +284,7 @@ function LedgerView() {
                   {trial.rows.map((r) => (
                     <TableRow key={`${r.type}-${r.account}`}>
                       <TableCell className="font-medium">{r.account}</TableCell>
-                      <TableCell className="capitalize text-muted-foreground">{r.type}</TableCell>
+                      <TableCell className="text-muted-foreground">{ACCOUNT_TYPE_MAP[r.type]?.label ?? r.type}</TableCell>
                       <TableCell className="text-right tabular-nums">{fmtCurrency(r.debit)}</TableCell>
                       <TableCell className="text-right tabular-nums">{fmtCurrency(r.credit)}</TableCell>
                       <TableCell className="text-right tabular-nums font-semibold">{fmtCurrency(r.balance)}</TableCell>

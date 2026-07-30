@@ -20,7 +20,9 @@ import {
   type DetectedValue,
   type FieldKey,
 } from "@/lib/doc-extract";
+import { looksLikeSubscriptions, rowsToSubRecords, type SubRecord } from "@/lib/cohorts";
 import type { ExtractedFields } from "@/lib/matrix-mapping";
+
 
 export const Route = createFileRoute("/data")({
   head: () => ({
@@ -161,13 +163,50 @@ function DataView() {
     setBusy(true);
     let ledgerAdded = 0;
     const ledgerBatch: FinanceState["ledger"] = [];
+    const subBatch: SubRecord[] = [];
+    const subSources: string[] = [];
 
     for (const file of list) {
       const kind = classifyFile(file);
+      const isJson = file.name.toLowerCase().endsWith(".json");
       try {
-        // 1. Tabular files: ledger export or label/value rows.
+        // 0. JSON customer/subscription exports.
+        if (isJson) {
+          const raw = await file.text();
+          const parsed = JSON.parse(raw);
+          const rows: Record<string, unknown>[] = Array.isArray(parsed)
+            ? parsed
+            : Array.isArray(parsed?.records)
+              ? parsed.records
+              : [];
+          const recs = rowsToSubRecords(rows);
+          if (recs.length) {
+            subBatch.push(...recs);
+            subSources.push(file.name);
+            addAttachment(file, "other", recs.length, raw.slice(0, 4000));
+            toast.success(`Read ${recs.length} subscription records from ${file.name}`);
+          } else {
+            addAttachment(file, "other", 0, raw.slice(0, 4000));
+            mergeDetected(detectFields(raw, file.name));
+          }
+          continue;
+        }
+
+        // 1. Tabular files: subscription data, ledger export, or label/value rows.
         if (kind === "csv" || kind === "excel") {
           const rows = await fileToRows(file).catch(() => [] as Record<string, unknown>[]);
+
+          if (looksLikeSubscriptions(rows)) {
+            const recs = rowsToSubRecords(rows);
+            if (recs.length) {
+              subBatch.push(...recs);
+              subSources.push(file.name);
+              addAttachment(file, kind, recs.length);
+              toast.success(`Read ${recs.length} subscription records from ${file.name}`);
+              continue;
+            }
+          }
+
           if (looksLikeLedger(rows)) {
             const entries = rowsToLedger(rows, file.name);
             ledgerBatch.push(...entries);
@@ -211,8 +250,26 @@ function DataView() {
 
     if (ledgerBatch.length) set("ledger", [...state.ledger, ...ledgerBatch]);
     if (ledgerAdded) toast.success(`${ledgerAdded} entries posted to the general ledger`);
+
+    if (subBatch.length) {
+      const existing = state.cohortData?.records ?? [];
+      const merged = new Map(existing.map((r) => [`${r.customerId}|${r.month}`, r]));
+      subBatch.forEach((r) => merged.set(`${r.customerId}|${r.month}`, r));
+      update({
+        cohortData: {
+          records: Array.from(merged.values()),
+          source: subSources.join(", "),
+          importedAt: Date.now(),
+        },
+        manualOverride: false,
+        manualCohorts: null,
+        manualNrr: null,
+      });
+      toast.success(`Cohort retention & NRR updated from ${subSources.length} file(s)`);
+    }
     setBusy(false);
   };
+
 
   const acceptDetected = (d: DetectedValue) => {
     const stateKey = STATE_FIELDS[d.key];
@@ -302,7 +359,7 @@ function DataView() {
               {busy ? "Reading your documents…" : "Drop any files here — multiple welcome"}
             </p>
             <p className="text-xs text-muted-foreground">
-              CSV / Excel → rows or ledger entries · PDF / DOCX / TXT → text parsed for figures
+              CSV / Excel / JSON → P&amp;L rows, ledger entries or customer subscription data · PDF / DOCX / TXT → text parsed for figures
             </p>
             <p className="mt-1 text-[11px] text-muted-foreground">
               Ledger format: <code>date, account, type, description, debit, credit</code> · P&amp;L format:{" "}
@@ -313,7 +370,7 @@ function DataView() {
             <input
               type="file"
               multiple
-              accept=".csv,.txt,.md,.xlsx,.xls,.ods,.pdf,.doc,.docx,.ppt,.pptx,.key"
+              accept=".csv,.json,.txt,.md,.xlsx,.xls,.ods,.pdf,.doc,.docx,.ppt,.pptx,.key"
               className="hidden"
               onChange={(e) => {
                 if (e.target.files?.length) handleFiles(e.target.files);
@@ -411,6 +468,22 @@ function DataView() {
           </CardContent>
         </Card>
       )}
+
+      {state.cohortData && state.cohortData.records.length > 0 && (
+        <Card>
+          <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4 text-sm">
+            <span className="flex items-center gap-2 text-muted-foreground">
+              <Sparkles className="h-4 w-4 text-emerald-400" />
+              {state.cohortData.records.length} subscription records parsed from{" "}
+              {state.cohortData.source || "your uploads"} — cohort retention &amp; NRR are live.
+            </span>
+            <Button size="sm" variant="outline" asChild>
+              <a href="/unit-economics">Open Unit Economics</a>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
 
       {state.attachments.length > 0 && (
         <Card>

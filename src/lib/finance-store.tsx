@@ -1,6 +1,10 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { LedgerEntry } from "./ledger";
 import type { ExtractedFields } from "./matrix-mapping";
+import type { CohortData, CohortRow, NrrPoint } from "./cohorts";
+import { DEFAULT_TAX_SETTINGS, type TaxSettings } from "./tax-engine";
+
+
 
 
 export type FinanceState = {
@@ -48,8 +52,17 @@ export type FinanceState = {
   }[];
   // Double-entry books
   ledger: LedgerEntry[];
+  /** Active tax jurisdiction & rule toggles. */
+  tax: TaxSettings;
+  /** Subscription/customer records parsed from ingested files. */
+  cohortData: CohortData | null;
+  /** Manual override of the cohort matrix / NRR series on Unit Economics. */
+  manualOverride: boolean;
+  manualCohorts: CohortRow[] | null;
+  manualNrr: NrrPoint[] | null;
   /** Figures accepted from uploaded documents, used to seed the Calculator Matrix. */
   extractedFields: ExtractedFields;
+
   // Latest AI CFO investor narrative (persisted for PDF export)
   latestNarrative: string;
   narrativeAt: number | null;
@@ -86,7 +99,13 @@ const DEFAULT_STATE: FinanceState = {
   customRows: [],
   attachments: [],
   ledger: [],
+  tax: DEFAULT_TAX_SETTINGS,
+  cohortData: null,
+  manualOverride: false,
+  manualCohorts: null,
+  manualNrr: null,
   extractedFields: {},
+
 
   latestNarrative: "",
   narrativeAt: null,
@@ -111,7 +130,15 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setState({ ...DEFAULT_STATE, ...JSON.parse(raw) });
+      if (raw) {
+        const parsed = JSON.parse(raw) as Partial<FinanceState>;
+        setState({
+          ...DEFAULT_STATE,
+          ...parsed,
+          tax: { ...DEFAULT_TAX_SETTINGS, ...(parsed.tax ?? {}) },
+        });
+      }
+
     } catch {}
     setHydrated(true);
   }, []);
