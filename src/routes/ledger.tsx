@@ -284,7 +284,7 @@ function LedgerView() {
                   {trial.rows.map((r) => (
                     <TableRow key={`${r.type}-${r.account}`}>
                       <TableCell className="font-medium">{r.account}</TableCell>
-                      <TableCell className="capitalize text-muted-foreground">{r.type}</TableCell>
+                      <TableCell className="text-muted-foreground">{ACCOUNT_TYPE_MAP[r.type]?.label ?? r.type}</TableCell>
                       <TableCell className="text-right tabular-nums">{fmtCurrency(r.debit)}</TableCell>
                       <TableCell className="text-right tabular-nums">{fmtCurrency(r.credit)}</TableCell>
                       <TableCell className="text-right tabular-nums font-semibold">{fmtCurrency(r.balance)}</TableCell>
