@@ -130,7 +130,15 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setState({ ...DEFAULT_STATE, ...JSON.parse(raw) });
+      if (raw) {
+        const parsed = JSON.parse(raw) as Partial<FinanceState>;
+        setState({
+          ...DEFAULT_STATE,
+          ...parsed,
+          tax: { ...DEFAULT_TAX_SETTINGS, ...(parsed.tax ?? {}) },
+        });
+      }
+
     } catch {}
     setHydrated(true);
   }, []);
