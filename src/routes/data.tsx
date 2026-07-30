@@ -359,7 +359,7 @@ function DataView() {
               {busy ? "Reading your documents…" : "Drop any files here — multiple welcome"}
             </p>
             <p className="text-xs text-muted-foreground">
-              CSV / Excel → rows or ledger entries · PDF / DOCX / TXT → text parsed for figures
+              CSV / Excel / JSON → P&amp;L rows, ledger entries or customer subscription data · PDF / DOCX / TXT → text parsed for figures
             </p>
             <p className="mt-1 text-[11px] text-muted-foreground">
               Ledger format: <code>date, account, type, description, debit, credit</code> · P&amp;L format:{" "}
