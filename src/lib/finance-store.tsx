@@ -52,8 +52,17 @@ export type FinanceState = {
   }[];
   // Double-entry books
   ledger: LedgerEntry[];
+  /** Active tax jurisdiction & rule toggles. */
+  tax: TaxSettings;
+  /** Subscription/customer records parsed from ingested files. */
+  cohortData: CohortData | null;
+  /** Manual override of the cohort matrix / NRR series on Unit Economics. */
+  manualOverride: boolean;
+  manualCohorts: CohortRow[] | null;
+  manualNrr: NrrPoint[] | null;
   /** Figures accepted from uploaded documents, used to seed the Calculator Matrix. */
   extractedFields: ExtractedFields;
+
   // Latest AI CFO investor narrative (persisted for PDF export)
   latestNarrative: string;
   narrativeAt: number | null;
@@ -90,7 +99,13 @@ const DEFAULT_STATE: FinanceState = {
   customRows: [],
   attachments: [],
   ledger: [],
+  tax: DEFAULT_TAX_SETTINGS,
+  cohortData: null,
+  manualOverride: false,
+  manualCohorts: null,
+  manualNrr: null,
   extractedFields: {},
+
 
   latestNarrative: "",
   narrativeAt: null,
