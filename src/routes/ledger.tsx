@@ -138,7 +138,7 @@ function LedgerView() {
                 <TableBody>
                   {entries.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center text-xs text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center text-xs text-muted-foreground">
                         No entries yet — add one, or upload a ledger file in Data Ingestion.
                       </TableCell>
                     </TableRow>
@@ -164,20 +164,48 @@ function LedgerView() {
                       <TableCell>
                         <Select
                           value={e.type}
-                          onValueChange={(v) => patchRow(e.id, { type: v as AccountType })}
+                          onValueChange={(v) =>
+                            patchRow(e.id, { type: v as AccountType, subtype: "" })
+                          }
                         >
                           <SelectTrigger className="h-8">
                             <SelectValue />
                           </SelectTrigger>
+                          <SelectContent className="max-h-80">
+                            {(["Core Financial", "Engineering Economics & Cost Accounting"] as const).map(
+                              (section) => (
+                                <SelectGroup key={section}>
+                                  <SelectLabel className="text-[10px] uppercase tracking-wide">{section}</SelectLabel>
+                                  {ACCOUNT_TYPES.filter((t) => t.section === section).map((t) => (
+                                    <SelectItem key={t.id} value={t.id}>
+                                      {t.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectGroup>
+                              ),
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                          value={e.subtype || "__none"}
+                          onValueChange={(v) => patchRow(e.id, { subtype: v === "__none" ? "" : v })}
+                        >
+                          <SelectTrigger className="h-8">
+                            <SelectValue placeholder="—" />
+                          </SelectTrigger>
                           <SelectContent>
-                            {ACCOUNT_TYPES.map((t) => (
-                              <SelectItem key={t.id} value={t.id}>
-                                {t.label}
+                            <SelectItem value="__none">—</SelectItem>
+                            {(ACCOUNT_TYPE_MAP[e.type]?.subtypes ?? []).map((st) => (
+                              <SelectItem key={st} value={st}>
+                                {st}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       </TableCell>
+
                       <TableCell>
                         <Input
                           value={e.description}
