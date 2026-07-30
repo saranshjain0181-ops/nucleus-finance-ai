@@ -97,7 +97,10 @@ function LedgerView() {
         </div>
       </header>
 
+      <TaxEngineCard />
+
       <Tabs defaultValue="ledger" className="space-y-6">
+
         <TabsList>
           <TabsTrigger value="ledger" className="gap-2">
             <BookOpen className="h-4 w-4" /> General Ledger
@@ -123,12 +126,14 @@ function LedgerView() {
                   <TableRow>
                     <TableHead className="w-36">Date</TableHead>
                     <TableHead className="min-w-40">Account</TableHead>
-                    <TableHead className="w-36">Type</TableHead>
+                    <TableHead className="w-56">Type</TableHead>
+                    <TableHead className="w-48">Sub-classification</TableHead>
                     <TableHead className="min-w-40">Description</TableHead>
                     <TableHead className="w-32 text-right">Debit</TableHead>
                     <TableHead className="w-32 text-right">Credit</TableHead>
                     <TableHead className="w-10" />
                   </TableRow>
+
                 </TableHeader>
                 <TableBody>
                   {entries.length === 0 && (
