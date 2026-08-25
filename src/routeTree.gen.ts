@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UnitEconomicsRouteImport } from './routes/unit-economics'
+import { Route as RlTreasuryRouteImport } from './routes/rl-treasury'
 import { Route as RiskGraphRouteImport } from './routes/risk-graph'
 import { Route as PnlRouteImport } from './routes/pnl'
 import { Route as MlAnomalyRouteImport } from './routes/ml-anomaly'
@@ -24,6 +25,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const UnitEconomicsRoute = UnitEconomicsRouteImport.update({
   id: '/unit-economics',
   path: '/unit-economics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RlTreasuryRoute = RlTreasuryRouteImport.update({
+  id: '/rl-treasury',
+  path: '/rl-treasury',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RiskGraphRoute = RiskGraphRouteImport.update({
@@ -88,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/ml-anomaly': typeof MlAnomalyRoute
   '/pnl': typeof PnlRoute
   '/risk-graph': typeof RiskGraphRoute
+  '/rl-treasury': typeof RlTreasuryRoute
   '/unit-economics': typeof UnitEconomicsRoute
 }
 export interface FileRoutesByTo {
@@ -101,6 +108,7 @@ export interface FileRoutesByTo {
   '/ml-anomaly': typeof MlAnomalyRoute
   '/pnl': typeof PnlRoute
   '/risk-graph': typeof RiskGraphRoute
+  '/rl-treasury': typeof RlTreasuryRoute
   '/unit-economics': typeof UnitEconomicsRoute
 }
 export interface FileRoutesById {
@@ -115,6 +123,7 @@ export interface FileRoutesById {
   '/ml-anomaly': typeof MlAnomalyRoute
   '/pnl': typeof PnlRoute
   '/risk-graph': typeof RiskGraphRoute
+  '/rl-treasury': typeof RlTreasuryRoute
   '/unit-economics': typeof UnitEconomicsRoute
 }
 export interface FileRouteTypes {
@@ -130,6 +139,7 @@ export interface FileRouteTypes {
     | '/ml-anomaly'
     | '/pnl'
     | '/risk-graph'
+    | '/rl-treasury'
     | '/unit-economics'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -143,6 +153,7 @@ export interface FileRouteTypes {
     | '/ml-anomaly'
     | '/pnl'
     | '/risk-graph'
+    | '/rl-treasury'
     | '/unit-economics'
   id:
     | '__root__'
@@ -156,6 +167,7 @@ export interface FileRouteTypes {
     | '/ml-anomaly'
     | '/pnl'
     | '/risk-graph'
+    | '/rl-treasury'
     | '/unit-economics'
   fileRoutesById: FileRoutesById
 }
@@ -170,6 +182,7 @@ export interface RootRouteChildren {
   MlAnomalyRoute: typeof MlAnomalyRoute
   PnlRoute: typeof PnlRoute
   RiskGraphRoute: typeof RiskGraphRoute
+  RlTreasuryRoute: typeof RlTreasuryRoute
   UnitEconomicsRoute: typeof UnitEconomicsRoute
 }
 
@@ -180,6 +193,13 @@ declare module '@tanstack/react-router' {
       path: '/unit-economics'
       fullPath: '/unit-economics'
       preLoaderRoute: typeof UnitEconomicsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rl-treasury': {
+      id: '/rl-treasury'
+      path: '/rl-treasury'
+      fullPath: '/rl-treasury'
+      preLoaderRoute: typeof RlTreasuryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/risk-graph': {
@@ -266,6 +286,7 @@ const rootRouteChildren: RootRouteChildren = {
   MlAnomalyRoute: MlAnomalyRoute,
   PnlRoute: PnlRoute,
   RiskGraphRoute: RiskGraphRoute,
+  RlTreasuryRoute: RlTreasuryRoute,
   UnitEconomicsRoute: UnitEconomicsRoute,
 }
 export const routeTree = rootRouteImport
