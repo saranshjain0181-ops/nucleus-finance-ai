@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UnitEconomicsRouteImport } from './routes/unit-economics'
+import { Route as RlTreasuryRouteImport } from './routes/rl-treasury'
+import { Route as RiskGraphRouteImport } from './routes/risk-graph'
 import { Route as PnlRouteImport } from './routes/pnl'
 import { Route as MlAnomalyRouteImport } from './routes/ml-anomaly'
 import { Route as LedgerRouteImport } from './routes/ledger'
@@ -17,11 +19,22 @@ import { Route as DataRouteImport } from './routes/data'
 import { Route as CalculatorsRouteImport } from './routes/calculators'
 import { Route as AiSimulatorRouteImport } from './routes/ai-simulator'
 import { Route as AiCfoRouteImport } from './routes/ai-cfo'
+import { Route as AgenticRouteImport } from './routes/agentic'
 import { Route as IndexRouteImport } from './routes/index'
 
 const UnitEconomicsRoute = UnitEconomicsRouteImport.update({
   id: '/unit-economics',
   path: '/unit-economics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RlTreasuryRoute = RlTreasuryRouteImport.update({
+  id: '/rl-treasury',
+  path: '/rl-treasury',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RiskGraphRoute = RiskGraphRouteImport.update({
+  id: '/risk-graph',
+  path: '/risk-graph',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PnlRoute = PnlRouteImport.update({
@@ -59,6 +72,11 @@ const AiCfoRoute = AiCfoRouteImport.update({
   path: '/ai-cfo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AgenticRoute = AgenticRouteImport.update({
+  id: '/agentic',
+  path: '/agentic',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -67,6 +85,7 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/agentic': typeof AgenticRoute
   '/ai-cfo': typeof AiCfoRoute
   '/ai-simulator': typeof AiSimulatorRoute
   '/calculators': typeof CalculatorsRoute
@@ -74,10 +93,13 @@ export interface FileRoutesByFullPath {
   '/ledger': typeof LedgerRoute
   '/ml-anomaly': typeof MlAnomalyRoute
   '/pnl': typeof PnlRoute
+  '/risk-graph': typeof RiskGraphRoute
+  '/rl-treasury': typeof RlTreasuryRoute
   '/unit-economics': typeof UnitEconomicsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/agentic': typeof AgenticRoute
   '/ai-cfo': typeof AiCfoRoute
   '/ai-simulator': typeof AiSimulatorRoute
   '/calculators': typeof CalculatorsRoute
@@ -85,11 +107,14 @@ export interface FileRoutesByTo {
   '/ledger': typeof LedgerRoute
   '/ml-anomaly': typeof MlAnomalyRoute
   '/pnl': typeof PnlRoute
+  '/risk-graph': typeof RiskGraphRoute
+  '/rl-treasury': typeof RlTreasuryRoute
   '/unit-economics': typeof UnitEconomicsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/agentic': typeof AgenticRoute
   '/ai-cfo': typeof AiCfoRoute
   '/ai-simulator': typeof AiSimulatorRoute
   '/calculators': typeof CalculatorsRoute
@@ -97,12 +122,15 @@ export interface FileRoutesById {
   '/ledger': typeof LedgerRoute
   '/ml-anomaly': typeof MlAnomalyRoute
   '/pnl': typeof PnlRoute
+  '/risk-graph': typeof RiskGraphRoute
+  '/rl-treasury': typeof RlTreasuryRoute
   '/unit-economics': typeof UnitEconomicsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/agentic'
     | '/ai-cfo'
     | '/ai-simulator'
     | '/calculators'
@@ -110,10 +138,13 @@ export interface FileRouteTypes {
     | '/ledger'
     | '/ml-anomaly'
     | '/pnl'
+    | '/risk-graph'
+    | '/rl-treasury'
     | '/unit-economics'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/agentic'
     | '/ai-cfo'
     | '/ai-simulator'
     | '/calculators'
@@ -121,10 +152,13 @@ export interface FileRouteTypes {
     | '/ledger'
     | '/ml-anomaly'
     | '/pnl'
+    | '/risk-graph'
+    | '/rl-treasury'
     | '/unit-economics'
   id:
     | '__root__'
     | '/'
+    | '/agentic'
     | '/ai-cfo'
     | '/ai-simulator'
     | '/calculators'
@@ -132,11 +166,14 @@ export interface FileRouteTypes {
     | '/ledger'
     | '/ml-anomaly'
     | '/pnl'
+    | '/risk-graph'
+    | '/rl-treasury'
     | '/unit-economics'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AgenticRoute: typeof AgenticRoute
   AiCfoRoute: typeof AiCfoRoute
   AiSimulatorRoute: typeof AiSimulatorRoute
   CalculatorsRoute: typeof CalculatorsRoute
@@ -144,6 +181,8 @@ export interface RootRouteChildren {
   LedgerRoute: typeof LedgerRoute
   MlAnomalyRoute: typeof MlAnomalyRoute
   PnlRoute: typeof PnlRoute
+  RiskGraphRoute: typeof RiskGraphRoute
+  RlTreasuryRoute: typeof RlTreasuryRoute
   UnitEconomicsRoute: typeof UnitEconomicsRoute
 }
 
@@ -154,6 +193,20 @@ declare module '@tanstack/react-router' {
       path: '/unit-economics'
       fullPath: '/unit-economics'
       preLoaderRoute: typeof UnitEconomicsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rl-treasury': {
+      id: '/rl-treasury'
+      path: '/rl-treasury'
+      fullPath: '/rl-treasury'
+      preLoaderRoute: typeof RlTreasuryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/risk-graph': {
+      id: '/risk-graph'
+      path: '/risk-graph'
+      fullPath: '/risk-graph'
+      preLoaderRoute: typeof RiskGraphRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pnl': {
@@ -205,6 +258,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AiCfoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/agentic': {
+      id: '/agentic'
+      path: '/agentic'
+      fullPath: '/agentic'
+      preLoaderRoute: typeof AgenticRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -217,6 +277,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AgenticRoute: AgenticRoute,
   AiCfoRoute: AiCfoRoute,
   AiSimulatorRoute: AiSimulatorRoute,
   CalculatorsRoute: CalculatorsRoute,
@@ -224,8 +285,20 @@ const rootRouteChildren: RootRouteChildren = {
   LedgerRoute: LedgerRoute,
   MlAnomalyRoute: MlAnomalyRoute,
   PnlRoute: PnlRoute,
+  RiskGraphRoute: RiskGraphRoute,
+  RlTreasuryRoute: RlTreasuryRoute,
   UnitEconomicsRoute: UnitEconomicsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
