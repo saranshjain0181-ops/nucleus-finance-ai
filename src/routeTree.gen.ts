@@ -17,6 +17,7 @@ import { Route as DataRouteImport } from './routes/data'
 import { Route as CalculatorsRouteImport } from './routes/calculators'
 import { Route as AiSimulatorRouteImport } from './routes/ai-simulator'
 import { Route as AiCfoRouteImport } from './routes/ai-cfo'
+import { Route as AgenticRouteImport } from './routes/agentic'
 import { Route as IndexRouteImport } from './routes/index'
 
 const UnitEconomicsRoute = UnitEconomicsRouteImport.update({
@@ -59,6 +60,11 @@ const AiCfoRoute = AiCfoRouteImport.update({
   path: '/ai-cfo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AgenticRoute = AgenticRouteImport.update({
+  id: '/agentic',
+  path: '/agentic',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -67,6 +73,7 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/agentic': typeof AgenticRoute
   '/ai-cfo': typeof AiCfoRoute
   '/ai-simulator': typeof AiSimulatorRoute
   '/calculators': typeof CalculatorsRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/agentic': typeof AgenticRoute
   '/ai-cfo': typeof AiCfoRoute
   '/ai-simulator': typeof AiSimulatorRoute
   '/calculators': typeof CalculatorsRoute
@@ -90,6 +98,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/agentic': typeof AgenticRoute
   '/ai-cfo': typeof AiCfoRoute
   '/ai-simulator': typeof AiSimulatorRoute
   '/calculators': typeof CalculatorsRoute
@@ -103,6 +112,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/agentic'
     | '/ai-cfo'
     | '/ai-simulator'
     | '/calculators'
@@ -114,6 +124,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/agentic'
     | '/ai-cfo'
     | '/ai-simulator'
     | '/calculators'
@@ -125,6 +136,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/agentic'
     | '/ai-cfo'
     | '/ai-simulator'
     | '/calculators'
@@ -137,6 +149,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AgenticRoute: typeof AgenticRoute
   AiCfoRoute: typeof AiCfoRoute
   AiSimulatorRoute: typeof AiSimulatorRoute
   CalculatorsRoute: typeof CalculatorsRoute
@@ -205,6 +218,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AiCfoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/agentic': {
+      id: '/agentic'
+      path: '/agentic'
+      fullPath: '/agentic'
+      preLoaderRoute: typeof AgenticRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -217,6 +237,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AgenticRoute: AgenticRoute,
   AiCfoRoute: AiCfoRoute,
   AiSimulatorRoute: AiSimulatorRoute,
   CalculatorsRoute: CalculatorsRoute,
