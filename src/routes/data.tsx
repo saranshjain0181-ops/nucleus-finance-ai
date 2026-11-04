@@ -22,6 +22,9 @@ import {
 } from "@/lib/doc-extract";
 import { looksLikeSubscriptions, rowsToSubRecords, type SubRecord } from "@/lib/cohorts";
 import type { ExtractedFields } from "@/lib/matrix-mapping";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SyntheticDataSandbox } from "@/components/finops/SyntheticDataSandbox";
+import { ContractMining } from "@/components/finops/ContractMining";
 
 
 export const Route = createFileRoute("/data")({
@@ -610,6 +613,19 @@ function DataView() {
           </Table>
         </CardContent>
       </Card>
+
+      <Tabs defaultValue="sandbox" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="sandbox">Synthetic Sandbox</TabsTrigger>
+          <TabsTrigger value="contracts">Contract Mining</TabsTrigger>
+        </TabsList>
+        <TabsContent value="sandbox">
+          <SyntheticDataSandbox />
+        </TabsContent>
+        <TabsContent value="contracts">
+          <ContractMining />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

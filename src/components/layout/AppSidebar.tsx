@@ -10,6 +10,9 @@ import {
   Radar,
   Users,
   BookOpen,
+  Workflow,
+  Landmark,
+  Network,
 } from "lucide-react";
 import {
   Sidebar,
@@ -32,10 +35,13 @@ const items = [
   { title: "AI Cost Simulator", url: "/ai-simulator", icon: TrendingUp },
   { title: "Calculator Matrix", url: "/calculators", icon: Calculator },
   { title: "AI CFO", url: "/ai-cfo", icon: Bot },
+  { title: "Agentic Workflows", url: "/agentic", icon: Workflow },
+  { title: "RL Treasury Copilot", url: "/rl-treasury", icon: Landmark },
 ];
 
 const scienceItems = [
   { title: "ML Anomaly Radar", url: "/ml-anomaly", icon: Radar },
+  { title: "Supply Chain & Risk Graph", url: "/risk-graph", icon: Network },
 ];
 
 export function AppSidebar() {
