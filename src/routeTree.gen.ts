@@ -9,67 +9,22 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as UnitEconomicsRouteImport } from './routes/unit-economics'
-import { Route as RlTreasuryRouteImport } from './routes/rl-treasury'
-import { Route as RiskGraphRouteImport } from './routes/risk-graph'
-import { Route as PnlRouteImport } from './routes/pnl'
-import { Route as MlAnomalyRouteImport } from './routes/ml-anomaly'
-import { Route as LedgerRouteImport } from './routes/ledger'
-import { Route as DataRouteImport } from './routes/data'
-import { Route as CalculatorsRouteImport } from './routes/calculators'
-import { Route as AiSimulatorRouteImport } from './routes/ai-simulator'
-import { Route as AiCfoRouteImport } from './routes/ai-cfo'
-import { Route as AgenticRouteImport } from './routes/agentic'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AgenticRouteImport } from './routes/agentic'
+import { Route as AiCfoRouteImport } from './routes/ai-cfo'
+import { Route as AiSimulatorRouteImport } from './routes/ai-simulator'
+import { Route as CalculatorsRouteImport } from './routes/calculators'
+import { Route as DataRouteImport } from './routes/data'
+import { Route as LedgerRouteImport } from './routes/ledger'
+import { Route as MlAnomalyRouteImport } from './routes/ml-anomaly'
+import { Route as PnlRouteImport } from './routes/pnl'
+import { Route as RiskGraphRouteImport } from './routes/risk-graph'
+import { Route as RlTreasuryRouteImport } from './routes/rl-treasury'
+import { Route as UnitEconomicsRouteImport } from './routes/unit-economics'
 
-const UnitEconomicsRoute = UnitEconomicsRouteImport.update({
-  id: '/unit-economics',
-  path: '/unit-economics',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RlTreasuryRoute = RlTreasuryRouteImport.update({
-  id: '/rl-treasury',
-  path: '/rl-treasury',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RiskGraphRoute = RiskGraphRouteImport.update({
-  id: '/risk-graph',
-  path: '/risk-graph',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PnlRoute = PnlRouteImport.update({
-  id: '/pnl',
-  path: '/pnl',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MlAnomalyRoute = MlAnomalyRouteImport.update({
-  id: '/ml-anomaly',
-  path: '/ml-anomaly',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LedgerRoute = LedgerRouteImport.update({
-  id: '/ledger',
-  path: '/ledger',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DataRoute = DataRouteImport.update({
-  id: '/data',
-  path: '/data',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CalculatorsRoute = CalculatorsRouteImport.update({
-  id: '/calculators',
-  path: '/calculators',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AiSimulatorRoute = AiSimulatorRouteImport.update({
-  id: '/ai-simulator',
-  path: '/ai-simulator',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AiCfoRoute = AiCfoRouteImport.update({
-  id: '/ai-cfo',
-  path: '/ai-cfo',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AgenticRoute = AgenticRouteImport.update({
@@ -77,9 +32,54 @@ const AgenticRoute = AgenticRouteImport.update({
   path: '/agentic',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AiCfoRoute = AiCfoRouteImport.update({
+  id: '/ai-cfo',
+  path: '/ai-cfo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiSimulatorRoute = AiSimulatorRouteImport.update({
+  id: '/ai-simulator',
+  path: '/ai-simulator',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CalculatorsRoute = CalculatorsRouteImport.update({
+  id: '/calculators',
+  path: '/calculators',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DataRoute = DataRouteImport.update({
+  id: '/data',
+  path: '/data',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LedgerRoute = LedgerRouteImport.update({
+  id: '/ledger',
+  path: '/ledger',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MlAnomalyRoute = MlAnomalyRouteImport.update({
+  id: '/ml-anomaly',
+  path: '/ml-anomaly',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PnlRoute = PnlRouteImport.update({
+  id: '/pnl',
+  path: '/pnl',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RiskGraphRoute = RiskGraphRouteImport.update({
+  id: '/risk-graph',
+  path: '/risk-graph',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RlTreasuryRoute = RlTreasuryRouteImport.update({
+  id: '/rl-treasury',
+  path: '/rl-treasury',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UnitEconomicsRoute = UnitEconomicsRouteImport.update({
+  id: '/unit-economics',
+  path: '/unit-economics',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -188,74 +188,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/unit-economics': {
-      id: '/unit-economics'
-      path: '/unit-economics'
-      fullPath: '/unit-economics'
-      preLoaderRoute: typeof UnitEconomicsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/rl-treasury': {
-      id: '/rl-treasury'
-      path: '/rl-treasury'
-      fullPath: '/rl-treasury'
-      preLoaderRoute: typeof RlTreasuryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/risk-graph': {
-      id: '/risk-graph'
-      path: '/risk-graph'
-      fullPath: '/risk-graph'
-      preLoaderRoute: typeof RiskGraphRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pnl': {
-      id: '/pnl'
-      path: '/pnl'
-      fullPath: '/pnl'
-      preLoaderRoute: typeof PnlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ml-anomaly': {
-      id: '/ml-anomaly'
-      path: '/ml-anomaly'
-      fullPath: '/ml-anomaly'
-      preLoaderRoute: typeof MlAnomalyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ledger': {
-      id: '/ledger'
-      path: '/ledger'
-      fullPath: '/ledger'
-      preLoaderRoute: typeof LedgerRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/data': {
-      id: '/data'
-      path: '/data'
-      fullPath: '/data'
-      preLoaderRoute: typeof DataRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/calculators': {
-      id: '/calculators'
-      path: '/calculators'
-      fullPath: '/calculators'
-      preLoaderRoute: typeof CalculatorsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ai-simulator': {
-      id: '/ai-simulator'
-      path: '/ai-simulator'
-      fullPath: '/ai-simulator'
-      preLoaderRoute: typeof AiSimulatorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ai-cfo': {
-      id: '/ai-cfo'
-      path: '/ai-cfo'
-      fullPath: '/ai-cfo'
-      preLoaderRoute: typeof AiCfoRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/agentic': {
@@ -265,11 +202,74 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AgenticRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/ai-cfo': {
+      id: '/ai-cfo'
+      path: '/ai-cfo'
+      fullPath: '/ai-cfo'
+      preLoaderRoute: typeof AiCfoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-simulator': {
+      id: '/ai-simulator'
+      path: '/ai-simulator'
+      fullPath: '/ai-simulator'
+      preLoaderRoute: typeof AiSimulatorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/calculators': {
+      id: '/calculators'
+      path: '/calculators'
+      fullPath: '/calculators'
+      preLoaderRoute: typeof CalculatorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/data': {
+      id: '/data'
+      path: '/data'
+      fullPath: '/data'
+      preLoaderRoute: typeof DataRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ledger': {
+      id: '/ledger'
+      path: '/ledger'
+      fullPath: '/ledger'
+      preLoaderRoute: typeof LedgerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ml-anomaly': {
+      id: '/ml-anomaly'
+      path: '/ml-anomaly'
+      fullPath: '/ml-anomaly'
+      preLoaderRoute: typeof MlAnomalyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pnl': {
+      id: '/pnl'
+      path: '/pnl'
+      fullPath: '/pnl'
+      preLoaderRoute: typeof PnlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/risk-graph': {
+      id: '/risk-graph'
+      path: '/risk-graph'
+      fullPath: '/risk-graph'
+      preLoaderRoute: typeof RiskGraphRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rl-treasury': {
+      id: '/rl-treasury'
+      path: '/rl-treasury'
+      fullPath: '/rl-treasury'
+      preLoaderRoute: typeof RlTreasuryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/unit-economics': {
+      id: '/unit-economics'
+      path: '/unit-economics'
+      fullPath: '/unit-economics'
+      preLoaderRoute: typeof UnitEconomicsRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
