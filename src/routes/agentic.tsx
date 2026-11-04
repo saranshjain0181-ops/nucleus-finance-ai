@@ -252,6 +252,7 @@ function AgenticView() {
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
                 fitView
+                colorMode="dark"
                 proOptions={{ hideAttribution: true }}
               >
                 <Background color="#1e293b" gap={18} />
