@@ -15,6 +15,9 @@ import { Route as AiCfoRouteImport } from './routes/ai-cfo'
 import { Route as AiSimulatorRouteImport } from './routes/ai-simulator'
 import { Route as CalculatorsRouteImport } from './routes/calculators'
 import { Route as DataRouteImport } from './routes/data'
+import { Route as EsgRouteImport } from './routes/esg'
+import { Route as ExitSimulatorRouteImport } from './routes/exit-simulator'
+import { Route as HumanCapitalRouteImport } from './routes/human-capital'
 import { Route as LedgerRouteImport } from './routes/ledger'
 import { Route as MlAnomalyRouteImport } from './routes/ml-anomaly'
 import { Route as PnlRouteImport } from './routes/pnl'
@@ -50,6 +53,21 @@ const CalculatorsRoute = CalculatorsRouteImport.update({
 const DataRoute = DataRouteImport.update({
   id: '/data',
   path: '/data',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EsgRoute = EsgRouteImport.update({
+  id: '/esg',
+  path: '/esg',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExitSimulatorRoute = ExitSimulatorRouteImport.update({
+  id: '/exit-simulator',
+  path: '/exit-simulator',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HumanCapitalRoute = HumanCapitalRouteImport.update({
+  id: '/human-capital',
+  path: '/human-capital',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LedgerRoute = LedgerRouteImport.update({
@@ -90,6 +108,9 @@ export interface FileRoutesByFullPath {
   '/ai-simulator': typeof AiSimulatorRoute
   '/calculators': typeof CalculatorsRoute
   '/data': typeof DataRoute
+  '/esg': typeof EsgRoute
+  '/exit-simulator': typeof ExitSimulatorRoute
+  '/human-capital': typeof HumanCapitalRoute
   '/ledger': typeof LedgerRoute
   '/ml-anomaly': typeof MlAnomalyRoute
   '/pnl': typeof PnlRoute
@@ -104,6 +125,9 @@ export interface FileRoutesByTo {
   '/ai-simulator': typeof AiSimulatorRoute
   '/calculators': typeof CalculatorsRoute
   '/data': typeof DataRoute
+  '/esg': typeof EsgRoute
+  '/exit-simulator': typeof ExitSimulatorRoute
+  '/human-capital': typeof HumanCapitalRoute
   '/ledger': typeof LedgerRoute
   '/ml-anomaly': typeof MlAnomalyRoute
   '/pnl': typeof PnlRoute
@@ -119,6 +143,9 @@ export interface FileRoutesById {
   '/ai-simulator': typeof AiSimulatorRoute
   '/calculators': typeof CalculatorsRoute
   '/data': typeof DataRoute
+  '/esg': typeof EsgRoute
+  '/exit-simulator': typeof ExitSimulatorRoute
+  '/human-capital': typeof HumanCapitalRoute
   '/ledger': typeof LedgerRoute
   '/ml-anomaly': typeof MlAnomalyRoute
   '/pnl': typeof PnlRoute
@@ -135,6 +162,9 @@ export interface FileRouteTypes {
     | '/ai-simulator'
     | '/calculators'
     | '/data'
+    | '/esg'
+    | '/exit-simulator'
+    | '/human-capital'
     | '/ledger'
     | '/ml-anomaly'
     | '/pnl'
@@ -149,6 +179,9 @@ export interface FileRouteTypes {
     | '/ai-simulator'
     | '/calculators'
     | '/data'
+    | '/esg'
+    | '/exit-simulator'
+    | '/human-capital'
     | '/ledger'
     | '/ml-anomaly'
     | '/pnl'
@@ -163,6 +196,9 @@ export interface FileRouteTypes {
     | '/ai-simulator'
     | '/calculators'
     | '/data'
+    | '/esg'
+    | '/exit-simulator'
+    | '/human-capital'
     | '/ledger'
     | '/ml-anomaly'
     | '/pnl'
@@ -178,6 +214,9 @@ export interface RootRouteChildren {
   AiSimulatorRoute: typeof AiSimulatorRoute
   CalculatorsRoute: typeof CalculatorsRoute
   DataRoute: typeof DataRoute
+  EsgRoute: typeof EsgRoute
+  ExitSimulatorRoute: typeof ExitSimulatorRoute
+  HumanCapitalRoute: typeof HumanCapitalRoute
   LedgerRoute: typeof LedgerRoute
   MlAnomalyRoute: typeof MlAnomalyRoute
   PnlRoute: typeof PnlRoute
@@ -228,6 +267,27 @@ declare module '@tanstack/react-router' {
       path: '/data'
       fullPath: '/data'
       preLoaderRoute: typeof DataRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/esg': {
+      id: '/esg'
+      path: '/esg'
+      fullPath: '/esg'
+      preLoaderRoute: typeof EsgRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/exit-simulator': {
+      id: '/exit-simulator'
+      path: '/exit-simulator'
+      fullPath: '/exit-simulator'
+      preLoaderRoute: typeof ExitSimulatorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/human-capital': {
+      id: '/human-capital'
+      path: '/human-capital'
+      fullPath: '/human-capital'
+      preLoaderRoute: typeof HumanCapitalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ledger': {
@@ -282,6 +342,9 @@ const rootRouteChildren: RootRouteChildren = {
   AiSimulatorRoute: AiSimulatorRoute,
   CalculatorsRoute: CalculatorsRoute,
   DataRoute: DataRoute,
+  EsgRoute: EsgRoute,
+  ExitSimulatorRoute: ExitSimulatorRoute,
+  HumanCapitalRoute: HumanCapitalRoute,
   LedgerRoute: LedgerRoute,
   MlAnomalyRoute: MlAnomalyRoute,
   PnlRoute: PnlRoute,

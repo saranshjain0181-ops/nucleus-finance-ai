@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+Keep strategic estimate formulas as pure functions in `src/lib/strategy-models.ts` and drive their views with clearly labeled editable assumptions, so scenario estimates stay testable and separate from actual finance state.
