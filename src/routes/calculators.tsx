@@ -28,6 +28,10 @@ export const Route = createFileRoute("/calculators")({
     meta: [
       { title: "Calculator Matrix — FinOps Studio" },
       { name: "description", content: "50+ finance calculators across VC, Corporate Finance, Micro, Capex, and Treasury." },
+      { property: "og:title", content: "Calculator Matrix — FinOps Studio" },
+      { property: "og:description", content: "Explore startup, corporate finance, treasury, and capital budgeting calculators." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: CalcMatrix,

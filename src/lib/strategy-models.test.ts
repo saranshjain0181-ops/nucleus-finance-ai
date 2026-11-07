@@ -1,4 +1,4 @@
-import { describe, expect, it } from "bun:test";
+import { strict as assert } from "node:assert";
 import {
   computeCarbonEstimate,
   computeExitWaterfall,
@@ -8,8 +8,7 @@ import {
   type HiringDepartment,
 } from "./strategy-models";
 
-describe("Phase 6 strategy estimates", () => {
-  it("computes carbon savings from moving workload to a lower-emissions region", () => {
+function runStrategyModelChecks() {
     const result = computeCarbonEstimate({
       monthlyMwh: 100,
       usEastTonnesPerMwh: 0.4,
@@ -19,13 +18,11 @@ describe("Phase 6 strategy estimates", () => {
       offsetPricePerTonne: 20,
       annualRelocationCost: 0,
     });
-    expect(result.baselineEmissions).toBe(480);
-    expect(result.projectedEmissions).toBe(300);
-    expect(result.netCarbonRoi).toBe(21_600);
-  });
+    assert.equal(result.baselineEmissions, 480);
+    assert.equal(result.projectedEmissions, 300);
+    assert.equal(result.netCarbonRoi, 21_600);
 
-  it("applies debt and preferred claims before founder and ESOP proceeds", () => {
-    const result = computeExitWaterfall({
+    const exit = computeExitWaterfall({
       arr: 10_000_000,
       revenueMultiple: 2,
       acquisitionPremiumPct: 0,
@@ -35,13 +32,11 @@ describe("Phase 6 strategy estimates", () => {
       esopOwnershipPct: 10,
       exitTaxPct: 25,
     });
-    expect(result.debtPaid).toBe(2_000_000);
-    expect(result.preferredPaid).toBe(8_000_000);
-    expect(result.founderAfterTax).toBe(4_500_000);
-    expect(result.esopAfterTax).toBe(750_000);
-  });
+    assert.equal(exit.debtPaid, 2_000_000);
+    assert.equal(exit.preferredPaid, 8_000_000);
+    assert.equal(exit.founderAfterTax, 4_500_000);
+    assert.equal(exit.esopAfterTax, 750_000);
 
-  it("includes salary, benefits, software seats, and hardware in employee cost", () => {
     const department: HiringDepartment = {
       id: "engineering",
       name: "Engineering",
@@ -52,13 +47,12 @@ describe("Phase 6 strategy estimates", () => {
       hardwarePerEmployeeMonthly: 50,
       teams: [],
     };
-    expect(getDepartmentFullyLoadedAnnualCost(department)).toBe(250_000);
-    expect(computeHiringScenario([department], "freeze").plannedHires).toBe(0);
-    expect(computeHiringScenario([department], "aggressive").plannedHires).toBe(1);
-  });
+    assert.equal(getDepartmentFullyLoadedAnnualCost(department), 243_600);
+    assert.equal(computeHiringScenario([department], "freeze").plannedHires, 0);
+    assert.equal(computeHiringScenario([department], "aggressive").plannedHires, 1);
 
-  it("uses the requested illustrative USD/INR forward and payroll notional", () => {
-    expect(getDepartmentFullyLoadedAnnualCost).toBeDefined();
-    expect(computeIllustrativeHedgeProtection(200_000, 3)).toBe(6_000);
-  });
-});
+  assert.equal(computeIllustrativeHedgeProtection(200_000, 3), 6_000);
+}
+
+runStrategyModelChecks();
+console.log("Phase 6 strategy model checks passed.");

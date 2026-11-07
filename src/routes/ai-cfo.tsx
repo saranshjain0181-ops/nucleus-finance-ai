@@ -19,6 +19,10 @@ export const Route = createFileRoute("/ai-cfo")({
     meta: [
       { title: "AI CFO — FinOps Studio" },
       { name: "description", content: "Chat with an AI CFO grounded in your live financial data." },
+      { property: "og:title", content: "AI CFO — FinOps Studio" },
+      { property: "og:description", content: "Ask focused financial questions using your current P&L and calculator context." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: AICFOView,

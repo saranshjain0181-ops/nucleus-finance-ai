@@ -38,10 +38,7 @@ function HumanCapitalView() {
   const [scenario, setScenario] = useState<"freeze" | "aggressive">("freeze");
   const [hiringPct, setHiringPct] = useState(20);
 
-  const scenarioData = useMemo(() => computeHiringScenario(
-    departments.map((department) => ({ ...department, headcount: scenario === "aggressive" ? Math.ceil(department.headcount * (hiringPct / 20)) : department.headcount })),
-    scenario,
-  ), [departments, scenario, hiringPct]);
+  const scenarioData = useMemo(() => computeHiringScenario(departments, scenario, hiringPct), [departments, scenario, hiringPct]);
   const selected = departments.find((department) => department.id === selectedId) ?? departments[0];
   const selectedAnnualCost = selected ? getDepartmentFullyLoadedAnnualCost(selected) : 0;
   const currentMonthlyPayroll = state.salaries / 12;

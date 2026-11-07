@@ -8,6 +8,10 @@ export const Route = createFileRoute("/")({
     meta: [
       { title: "Overview — FinOps Studio" },
       { name: "description", content: "Snapshot of your P&L, unit economics, and AI cost surface." },
+      { property: "og:title", content: "Financial Command Center — FinOps Studio" },
+      { property: "og:description", content: "A live overview of startup P&L, unit economics, and AI compute costs." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Overview,

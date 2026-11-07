@@ -13,6 +13,9 @@ import {
   Workflow,
   Landmark,
   Network,
+  Leaf,
+  BriefcaseBusiness,
+  DoorOpen,
 } from "lucide-react";
 import {
   Sidebar,
@@ -37,6 +40,9 @@ const items = [
   { title: "AI CFO", url: "/ai-cfo", icon: Bot },
   { title: "Agentic Workflows", url: "/agentic", icon: Workflow },
   { title: "RL Treasury Copilot", url: "/rl-treasury", icon: Landmark },
+  { title: "ESG & Carbon Ledger", url: "/esg", icon: Leaf },
+  { title: "Human Capital FinOps", url: "/human-capital", icon: BriefcaseBusiness },
+  { title: "Exit Simulator", url: "/exit-simulator", icon: DoorOpen },
 ];
 
 const scienceItems = [

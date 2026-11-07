@@ -21,6 +21,10 @@ export const Route = createFileRoute("/ai-simulator")({
     meta: [
       { title: "AI Cost Simulator — FinOps Studio" },
       { name: "description", content: "Token economics, human vs agent, and margin collapse point." },
+      { property: "og:title", content: "AI Cost Simulator — FinOps Studio" },
+      { property: "og:description", content: "Model inference costs, compute economics, and AI product margins." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: AISim,

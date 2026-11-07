@@ -57,11 +57,12 @@ export function getDepartmentFullyLoadedAnnualCost(department: HiringDepartment)
 export function computeHiringScenario(
   departments: HiringDepartment[],
   scenario: "freeze" | "aggressive",
+  growthPct = 20,
 ) {
   const existingHeadcount = departments.reduce((sum, department) => sum + department.headcount, 0);
   const hiresByDepartment = departments.map((department) => ({
     departmentId: department.id,
-    hires: scenario === "aggressive" ? Math.ceil(department.headcount * 0.2) : 0,
+    hires: scenario === "aggressive" ? Math.ceil(department.headcount * (Math.max(0, growthPct) / 100)) : 0,
   }));
   const plannedHires = hiresByDepartment.reduce((sum, row) => sum + row.hires, 0);
   const incrementalAnnualCost = hiresByDepartment.reduce((sum, row) => {

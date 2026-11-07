@@ -87,7 +87,6 @@ function EsgView() {
             </CardHeader>
             <CardContent>
               <div className="relative overflow-hidden rounded-lg border border-border/60 bg-muted/30 p-5 sm:p-8">
-                <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-30" style={{ backgroundImage: "linear-gradient(to right, var(--color-border) 1px, transparent 1px), linear-gradient(to bottom, var(--color-border) 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
                 <div className="relative grid min-h-48 grid-cols-2 items-center gap-4 sm:min-h-56 sm:grid-cols-3">
                   <div className="justify-self-center text-center">
                     <div className="mx-auto mb-2 grid h-10 w-10 place-items-center rounded-full border border-chart-3/50 bg-chart-3/10 text-chart-3"><Server className="h-4 w-4" /></div>

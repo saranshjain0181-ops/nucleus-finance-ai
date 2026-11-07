@@ -8,6 +8,10 @@ export const Route = createFileRoute("/pnl")({
     meta: [
       { title: "P&L Waterfall — FinOps Studio" },
       { name: "description", content: "Auto-computed profit and loss waterfall with margin summary." },
+      { property: "og:title", content: "P&L Waterfall — FinOps Studio" },
+      { property: "og:description", content: "Review revenue, operating costs, and profit margins in a live P&L." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: PnLView,
