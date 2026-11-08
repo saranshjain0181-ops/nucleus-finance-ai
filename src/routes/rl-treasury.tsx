@@ -10,7 +10,6 @@ import { fmtCurrency } from "@/lib/finance-store";
 import { computeIllustrativeHedgeProtection, getIllustrativeFxSeries } from "@/lib/strategy-models";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/rl-treasury")({
   head: () => ({
@@ -117,6 +116,7 @@ function SankeyNode({ x, y, width, height, index, payload }: any) {
 function RlTreasuryView() {
   const [decided, setDecided] = useState<Record<string, "approved" | "rejected">>({});
   const [reward, setReward] = useState(0.62);
+  const [activeView, setActiveView] = useState<"copilot" | "fx">("copilot");
 
   const pending = BASE_RECS.filter((r) => !decided[r.id]);
   const approved = BASE_RECS.filter((r) => decided[r.id] === "approved");
@@ -153,12 +153,12 @@ function RlTreasuryView() {
         </p>
       </header>
 
-      <Tabs defaultValue="copilot" className="space-y-6">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
-          <TabsTrigger value="copilot">Treasury copilot</TabsTrigger>
-          <TabsTrigger value="fx">FX hedging</TabsTrigger>
-        </TabsList>
-        <TabsContent value="copilot" className="space-y-6">
+      <div className="space-y-6">
+        <div className="grid w-full max-w-md grid-cols-2 rounded-lg bg-muted p-1" role="tablist" aria-label="Treasury views">
+          <Button role="tab" aria-selected={activeView === "copilot"} variant={activeView === "copilot" ? "default" : "ghost"} onClick={() => setActiveView("copilot")}>Treasury copilot</Button>
+          <Button role="tab" aria-selected={activeView === "fx"} variant={activeView === "fx" ? "default" : "ghost"} onClick={() => setActiveView("fx")}>FX hedging</Button>
+        </div>
+        {activeView === "copilot" && <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-4">
         {[
           { label: "Capital deployed", value: fmtCurrency(deployed), tone: "text-cyan-400" },
@@ -279,8 +279,8 @@ function RlTreasuryView() {
           </CardContent>
         </Card>
       </div>
-        </TabsContent>
-        <TabsContent value="fx" className="space-y-6">
+        </div>}
+        {activeView === "fx" && <div className="space-y-6">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="text-xs uppercase tracking-widest text-muted-foreground">Global liquidity</p>
@@ -344,8 +344,8 @@ function RlTreasuryView() {
             </CardContent>
           </Card>
           <p className="text-xs leading-relaxed text-muted-foreground">Rates and forward scenarios are synthetic examples for planning only; they are not investment advice, quotes, or executable trades.</p>
-        </TabsContent>
-      </Tabs>
+        </div>}
+      </div>
     </div>
   );
 }
