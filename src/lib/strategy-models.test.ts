@@ -1,4 +1,5 @@
 import { strict as assert } from "node:assert";
+import { test } from "node:test";
 import {
   computeCarbonEstimate,
   computeExitWaterfall,
@@ -8,7 +9,7 @@ import {
   type HiringDepartment,
 } from "./strategy-models";
 
-function runStrategyModelChecks() {
+test("lower-carbon relocation reduces projected emissions and calculates net ROI", () => {
     const result = computeCarbonEstimate({
       monthlyMwh: 100,
       usEastTonnesPerMwh: 0.4,
@@ -21,7 +22,9 @@ function runStrategyModelChecks() {
     assert.equal(result.baselineEmissions, 480);
     assert.equal(result.projectedEmissions, 300);
     assert.equal(result.netCarbonRoi, 21_600);
+});
 
+test("exit waterfall pays debt and preferred claims before founder and ESOP", () => {
     const exit = computeExitWaterfall({
       arr: 10_000_000,
       revenueMultiple: 2,
@@ -36,7 +39,9 @@ function runStrategyModelChecks() {
     assert.equal(exit.preferredPaid, 8_000_000);
     assert.equal(exit.founderAfterTax, 4_500_000);
     assert.equal(exit.esopAfterTax, 750_000);
+});
 
+test("fully-loaded department cost includes salary, benefits, software seats, and hardware", () => {
     const department: HiringDepartment = {
       id: "engineering",
       name: "Engineering",
@@ -50,9 +55,8 @@ function runStrategyModelChecks() {
     assert.equal(getDepartmentFullyLoadedAnnualCost(department), 243_600);
     assert.equal(computeHiringScenario([department], "freeze").plannedHires, 0);
     assert.equal(computeHiringScenario([department], "aggressive").plannedHires, 1);
+});
 
+test("FX payroll estimate calculates the specified 3 percent exposure", () => {
   assert.equal(computeIllustrativeHedgeProtection(200_000, 3), 6_000);
-}
-
-runStrategyModelChecks();
-console.log("Phase 6 strategy model checks passed.");
+});

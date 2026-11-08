@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { BadgeDollarSign, CircleDollarSign, Landmark, Percent, Sparkles } from "lucide-react";
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -26,13 +26,14 @@ export const Route = createFileRoute("/exit-simulator")({
 function ExitSimulator() {
   const { state } = useFinance();
   const [arrMultiple, setArrMultiple] = useState(8);
+  const [arrOverride, setArrOverride] = useState<number | null>(null);
   const [premiumPct, setPremiumPct] = useState(20);
   const [ventureDebt, setVentureDebt] = useState(2_000_000);
   const [preferred, setPreferred] = useState(12_000_000);
   const [founderPct, setFounderPct] = useState(55);
   const [esopPct, setEsopPct] = useState(12);
   const [taxPct, setTaxPct] = useState(20);
-  const arr = typeof state.extractedFields.arr === "number" ? state.extractedFields.arr : state.revenue;
+  const arr = arrOverride ?? (typeof state.extractedFields.arr === "number" ? state.extractedFields.arr : state.revenue);
   const result = useMemo(() => computeExitWaterfall({
     arr,
     revenueMultiple: arrMultiple,
@@ -43,14 +44,15 @@ function ExitSimulator() {
     esopOwnershipPct: esopPct,
     exitTaxPct: taxPct,
   }), [arr, arrMultiple, premiumPct, ventureDebt, preferred, founderPct, esopPct, taxPct]);
-  const waterfall = [
-    { stage: "Gross exit", value: result.grossExitValue },
-    { stage: "Debt", value: result.debtPaid },
-    { stage: "Preferred", value: result.preferredPaid },
-    { stage: "Founder net", value: result.founderAfterTax },
-    { stage: "ESOP net", value: result.esopAfterTax },
-    { stage: "Other common", value: Math.max(0, result.commonEquity - result.founderPreTax - result.esopPreTax - result.totalExitTax + result.founderTax + result.esopTax) },
-  ];
+  const waterfall = [{
+    stage: "Exit proceeds",
+    debt: result.debtPaid,
+    preferred: result.preferredPaid,
+    founder: result.founderAfterTax,
+    esop: result.esopAfterTax,
+    otherCommon: Math.max(0, result.commonEquity - result.founderPreTax - result.esopPreTax - result.totalExitTax + result.founderTax + result.esopTax),
+    tax: result.totalExitTax,
+  }];
 
   return (
     <div className="mx-auto max-w-[1500px] space-y-6 p-6">
@@ -83,7 +85,7 @@ function ExitSimulator() {
               <Slider aria-label="Acquisition premium" min={0} max={100} step={5} value={[premiumPct]} onValueChange={(value) => setPremiumPct(value[0] ?? 20)} />
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <label className="space-y-1.5 text-xs text-muted-foreground">ARR used<Input type="number" value={arr} readOnly aria-label="ARR used in model" /></label>
+              <label className="space-y-1.5 text-xs text-muted-foreground">ARR used<Input type="number" min={0} value={arr} onChange={(event) => setArrOverride(Math.max(0, Number(event.target.value)))} aria-label="ARR used in model" /></label>
               <label className="space-y-1.5 text-xs text-muted-foreground">Venture debt<Input type="number" min={0} value={ventureDebt} onChange={(event) => setVentureDebt(Number(event.target.value))} /></label>
               <label className="space-y-1.5 text-xs text-muted-foreground">Preferred preference<Input type="number" min={0} value={preferred} onChange={(event) => setPreferred(Number(event.target.value))} /></label>
               <label className="space-y-1.5 text-xs text-muted-foreground">Founder ownership (%)<Input type="number" min={0} max={100} value={founderPct} onChange={(event) => setFounderPct(Number(event.target.value))} /></label>
@@ -104,7 +106,13 @@ function ExitSimulator() {
                   <XAxis dataKey="stage" tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }} axisLine={false} tickLine={false} tickFormatter={(value: number) => fmtCurrency(value)} />
                   <Tooltip formatter={(value: number) => [fmtCurrency(value), "Payout"]} contentStyle={{ background: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: 8 }} />
-                  <Bar dataKey="value" fill="var(--color-chart-4)" radius={[4, 4, 0, 0]} />
+                  <Legend />
+                  <Bar dataKey="debt" name="Venture debt" stackId="proceeds" fill="var(--color-chart-1)" />
+                  <Bar dataKey="preferred" name="Preferred" stackId="proceeds" fill="var(--color-chart-3)" />
+                  <Bar dataKey="founder" name="Founder · after tax" stackId="proceeds" fill="var(--color-chart-2)" />
+                  <Bar dataKey="esop" name="ESOP · after tax" stackId="proceeds" fill="var(--color-chart-4)" />
+                  <Bar dataKey="otherCommon" name="Other common · after tax" stackId="proceeds" fill="var(--color-chart-5)" />
+                  <Bar dataKey="tax" name="Estimated tax" stackId="proceeds" fill="var(--color-muted-foreground)" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
